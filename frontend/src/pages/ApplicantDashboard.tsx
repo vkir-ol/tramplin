@@ -1,0 +1,314 @@
+// Страница личного кабинета соискателя
+
+import { useState, useEffect, type FormEvent } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { getApplicantProfile, updateApplicantProfile } from '../api/applicant';
+import { getErrorMessage } from '../api/client';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import type { ApplicantProfileResponse, UpdateApplicantRequest } from '../types';
+import styles from './Dashboard.module.css';
+
+export function ApplicantDashboard() {
+  const { user } = useAuth();
+
+  // Состояния
+  const [profile, setProfile] = useState<ApplicantProfileResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Данные формы редактирования
+  const [form, setForm] = useState<UpdateApplicantRequest>({
+    firstName: '',
+    lastName: '',
+    middleName: '',
+    university: '',
+    course: undefined,
+    graduationYear: undefined,
+    bio: '',
+    phone: '',
+  });
+
+  // Загрузка профиля при монтировании
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  async function loadProfile() {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await getApplicantProfile();
+      setProfile(data);
+      // Заполняем форму текущими данными
+      setForm({
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        middleName: data.middleName || '',
+        university: data.university || '',
+        course: data.course ?? undefined,
+        graduationYear: data.graduationYear ?? undefined,
+        bio: data.bio || '',
+        phone: data.phone || '',
+      });
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Обработка полей формы
+  function handleChange(field: keyof UpdateApplicantRequest, value: string) {
+    setForm((prev) => ({
+      ...prev,
+      [field]: field === 'course' || field === 'graduationYear'
+        ? (value === '' ? undefined : Number(value))
+        : value,
+    }));
+  }
+
+  // Сохранение
+  async function handleSave(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSuccessMsg(null);
+
+    // Клиентская валидация
+    if (!form.firstName.trim() || !form.lastName.trim()) {
+      setError('Имя и фамилия обязательны');
+      return;
+    }
+    if (form.course !== undefined && (form.course < 1 || form.course > 6)) {
+      setError('Курс должен быть от 1 до 6');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const updated = await updateApplicantProfile(form);
+      setProfile(updated);
+      setIsEditing(false);
+      setSuccessMsg('Профиль сохранён');
+      // скрыть сообщение черзе 3 секунды
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  // Отмена редактирования
+  function handleCancel() {
+    if (profile) {
+      setForm({
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        middleName: profile.middleName || '',
+        university: profile.university || '',
+        course: profile.course ?? undefined,
+        graduationYear: profile.graduationYear ?? undefined,
+        bio: profile.bio || '',
+        phone: profile.phone || '',
+      });
+    }
+    setIsEditing(false);
+    setError(null);
+  }
+
+  // Индикатор загрузки
+  if (isLoading) {
+    return (
+      <main className={styles.dashboard}>
+        <div className={styles.container}>
+          <div className={styles.loadingState}>Загрузка профиля...</div>
+        </div>
+      </main>
+    );
+  }
+
+  // Полное имя для отображения
+  const fullName = profile
+    ? [profile.lastName, profile.firstName, profile.middleName].filter(Boolean).join(' ')
+    : user?.displayName || '';
+
+  return (
+    <main className={styles.dashboard}>
+      <div className={styles.container}>
+        <header className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Личный кабинет</h1>
+          <span className={styles.roleBadge}>Соискатель</span>
+        </header>
+
+        {/* Сообщения */}
+        {successMsg && <div className={styles.successBanner}>{successMsg}</div>}
+        {error && <div className={styles.errorBanner}>{error}</div>}
+
+        {/* Карточка профиля */}
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Мой профиль</h2>
+            {!isEditing && (
+              <Button variant="secondary" size="sm" onClick={() => setIsEditing(true)}>
+                Редактировать
+              </Button>
+            )}
+          </div>
+
+          {isEditing ? (
+            /* Режим редактирования */
+            <form onSubmit={handleSave} className={styles.editForm}>
+              <div className={styles.formRow}>
+                <Input
+                  label="Фамилия *"
+                  value={form.lastName}
+                  onChange={(e) => handleChange('lastName', e.target.value)}
+                  placeholder="Киреев"
+                />
+                <Input
+                  label="Имя *"
+                  value={form.firstName}
+                  onChange={(e) => handleChange('firstName', e.target.value)}
+                  placeholder="Влад"
+                />
+                <Input
+                  label="Отчество"
+                  value={form.middleName || ''}
+                  onChange={(e) => handleChange('middleName', e.target.value)}
+                  placeholder="Алексеевич"
+                />
+              </div>
+
+              <div className={styles.formRow}>
+                <Input
+                  label="ВУЗ"
+                  value={form.university || ''}
+                  onChange={(e) => handleChange('university', e.target.value)}
+                  placeholder="МГТУ им. Н.Э Баумана"
+                />
+                <Input
+                  label="Курс (1-6)"
+                  type="number"
+                  value={form.course?.toString() || ''}
+                  onChange={(e) => handleChange('course', e.target.value)}
+                  placeholder="1"
+                />
+                <Input
+                  label="Год выпуска"
+                  type="number"
+                  value={form.graduationYear?.toString() || ''}
+                  onChange={(e) => handleChange('graduationYear', e.target.value)}
+                  placeholder="2026"
+                />
+              </div>
+
+              <Input
+                label="Телефон"
+                type="tel"
+                value={form.phone || ''}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                placeholder="+7 (901) 243-35-39"
+              />
+
+              <div className={styles.textareaGroup}>
+                <label className={styles.textareaLabel}>О себе</label>
+                <textarea
+                  className={styles.textarea}
+                  value={form.bio || ''}
+                  onChange={(e) => handleChange('bio', e.target.value)}
+                  placeholder="Расскажите о себе, о своих навыках и целях..."
+                  rows={4}
+                />
+              </div>
+
+              <div className={styles.formActions}>
+                <Button type="submit" isLoading={isSaving}>
+                  Сохранить
+                </Button>
+                <Button type="button" variant="ghost" onClick={handleCancel}>
+                  Отмена
+                </Button>
+              </div>
+            </form>
+          ) : (
+            /* Режим просмотра */
+            <div className={styles.profileView}>
+              <div className={styles.profileSummary}>
+                <div className={styles.avatar}>
+                  {(profile?.firstName || user?.displayName || '?').charAt(0).toUpperCase()}
+                </div>
+                <div className={styles.profileInfo}>
+                  <p className={styles.profileName}>
+                    {fullName || 'Имя не указано'}
+                  </p>
+                  <p className={styles.profileEmail}>{user?.email}</p>
+                </div>
+              </div>
+
+              <div className={styles.detailsGrid}>
+                {profile?.university && (
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>ВУЗ</span>
+                    <span className={styles.detailValue}>{profile.university}</span>
+                  </div>
+                )}
+                {profile?.course && (
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Курс</span>
+                    <span className={styles.detailValue}>{profile.course}</span>
+                  </div>
+                )}
+                {profile?.graduationYear && (
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Год выпуска</span>
+                    <span className={styles.detailValue}>{profile.graduationYear}</span>
+                  </div>
+                )}
+                {profile?.phone && (
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Телефон</span>
+                    <span className={styles.detailValue}>{profile.phone}</span>
+                  </div>
+                )}
+                {profile?.bio && (
+                  <div className={`${styles.detailItem} ${styles.detailFull}`}>
+                    <span className={styles.detailLabel}>О себе</span>
+                    <span className={styles.detailValue}>{profile.bio}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Заглушки для будущих секций, ПОКА НЕ СДЕЛАНЫ */}
+        <div className={styles.grid}>
+          <section className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>📋 Мои отклики</h2>
+            </div>
+            <p className={styles.placeholder}>История откликов и их статусы появятся здесь</p>
+          </section>
+
+          <section className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>⭐ Избранное</h2>
+            </div>
+            <p className={styles.placeholder}>Сохранённые вакансии и мероприятия</p>
+          </section>
+
+          <section className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>👥 Контакты</h2>
+            </div>
+            <p className={styles.placeholder}>Профессиональные контакты и нетворкинг</p>
+          </section>
+        </div>
+      </div>
+    </main>
+  );
+}

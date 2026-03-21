@@ -1,0 +1,180 @@
+/* Главная страница */
+
+.main {
+  min-height: calc(100vh - 64px); /* Высота экрана - шапка */
+}
+
+/* Hero-секция */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-16) var(--space-6) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-12);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+
+.heroBgOrb1 {
+  position: absolute;
+  top: -80px;
+  right: -120px;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 98, 44, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  animation: float 8s ease-in-out infinite;
+}
+
+.heroBgOrb2 {
+  position: absolute;
+  bottom: -60px;
+  left: -100px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 98, 44, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  animation: float 10s ease-in-out infinite reverse;
+}
+
+
+.heroContent {
+  text-align: center;
+  max-width: 640px;
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.8s var(--ease-out) both;
+}
+
+.heroTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-5xl);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+  margin-bottom: var(--space-5);
+}
+
+.heroAccent {
+  background: linear-gradient(135deg, var(--color-accent) 0%, #F5945B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.heroSubtitle {
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* Приветствие */
+.welcomeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  padding: var(--space-3) var(--space-5);
+  background-color: var(--color-accent-light);
+  border: 1px solid rgba(232, 98, 44, 0.15);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-accent);
+  animation: fadeInUp 0.8s var(--ease-out) 0.2s both;
+}
+
+/* Карта(пока что еще нету) */
+.mapPlaceholder {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.8s var(--ease-out) 0.15s both;
+}
+
+.mapInner {
+  width: 100%;
+  min-height: 400px;
+  border-radius: var(--radius-xl);
+  border: 2px dashed var(--color-border);
+  background-color: var(--color-bg-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  transition: border-color var(--duration-normal) var(--ease-out);
+}
+
+.mapInner:hover {
+  border-color: var(--color-accent);
+}
+
+.mapIcon {
+  color: var(--color-text-muted);
+}
+
+.mapText {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.mapSubtext {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* Анимации */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-20px); }
+}
+
+/* Адаптивность под мобильные устройства */
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--space-10) var(--space-4) var(--space-6);
+    gap: var(--space-8);
+  }
+
+  .heroTitle {
+    font-size: var(--text-3xl);
+  }
+
+  .heroSubtitle {
+    font-size: var(--text-base);
+  }
+
+  .mapInner {
+    min-height: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroTitle {
+    font-size: var(--text-2xl);
+  }
+}

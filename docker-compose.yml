@@ -1,0 +1,51 @@
+# Запуск: docker-compose up -d
+
+version: '3.9'
+
+services:
+  #  База данных PostgreSQL + PostGIS (для карты в будущем)
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: tramplin-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-tramplin}
+      POSTGRES_USER: ${DB_USER:-tramplin_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tramplin_secret}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tramplin_user} -d ${DB_NAME:-tramplin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---- Backend (Spring Boot) — раскомментировать после сборки ----
+  # backend:
+  #   build: ./backend
+  #   container_name: tramplin-backend
+  #   restart: unless-stopped
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   environment:
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME:-tramplin}
+  #     SPRING_DATASOURCE_USERNAME: ${DB_USER:-tramplin_user}
+  #     SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-tramplin_secret}
+  #     JWT_SECRET: ${JWT_SECRET:-my-super-secret-key-that-is-at-least-256-bits-long!!}
+  #   ports:
+  #     - "8080:8080"
+
+  # ---- Frontend (React + Vite) — раскомментировать после настройки ----
+  # frontend:
+  #   build: ./frontend
+  #   container_name: tramplin-frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+
+volumes:
+  pgdata:
+    driver: local

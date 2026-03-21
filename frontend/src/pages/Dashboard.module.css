@@ -1,0 +1,347 @@
+/* Общие стили для трех ЛК-ов т.к каркас везде одинаковый*/
+
+
+.dashboard {
+    min-height: calc(100vh - 72px);
+    background: var(--color-bg);
+    padding: 2rem 1rem;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Шапка страницы */
+.pageHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.pageTitle {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.roleBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--color-accent-light, #fef0e8);
+    color: var(--color-accent);
+}
+
+.roleBadgeEmployer {
+    background: #e8f0fe;
+    color: #1a56db;
+}
+
+.roleBadgeCurator {
+    background: #e8fee8;
+    color: #1a8c1a;
+}
+
+/* Карточки */
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.cardTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+/* Сетка grid карточек */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pageTitle {
+        font-size: 1.5rem;
+    }
+
+    .formRow {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Профиль */
+.profileSummary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profileView {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.avatarCompany {
+    background: #1a56db;
+    border-radius: 12px;
+}
+
+.profileInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.profileName {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.profileEmail {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+/* Детали профиля в режиме просмотра */
+.detailsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.detailItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.detailFull {
+    grid-column: 1 / -1;
+}
+
+.detailLabel {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.detailValue {
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+    line-height: 1.5;
+}
+
+/* Форма редактирования */
+.editForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.formRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.formActions {
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+}
+
+.textareaGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.textareaLabel {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+    background: var(--color-bg);
+    resize: vertical;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.textarea::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 0.6;
+}
+
+/* Заглушки - это временно */
+.placeholder {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Баннеры */
+.warningBanner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #fef3cd;
+    border: 1px solid #ffc107;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    color: #664d03;
+}
+
+.warningBanner span {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.warningBanner strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.warningBanner p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.successBanner {
+    padding: 0.75rem 1.25rem;
+    background: #d1e7dd;
+    border: 1px solid #a3cfbb;
+    border-radius: 12px;
+    color: #0f5132;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.errorBanner {
+    padding: 0.75rem 1.25rem;
+    background: #f8d7da;
+    border: 1px solid #f5c2c7;
+    border-radius: 12px;
+    color: #842029;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Состояние загрузки */
+.loadingState {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40vh;
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+}
+
+
+.cardActions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.verificationBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border: 1.5px solid;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.formRow2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.detailLink {
+    font-size: 0.95rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.detailLink:hover {
+    opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+    .formRow2 {
+        grid-template-columns: 1fr;
+    }
+
+    .cardActions {
+        flex-wrap: wrap;
+    }
+}
