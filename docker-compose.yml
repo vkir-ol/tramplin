@@ -22,30 +22,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ---- Backend (Spring Boot) — раскомментировать после сборки ----
-  # backend:
-  #   build: ./backend
-  #   container_name: tramplin-backend
-  #   restart: unless-stopped
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME:-tramplin}
-  #     SPRING_DATASOURCE_USERNAME: ${DB_USER:-tramplin_user}
-  #     SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-tramplin_secret}
-  #     JWT_SECRET: ${JWT_SECRET:-my-super-secret-key-that-is-at-least-256-bits-long!!}
-  #   ports:
-  #     - "8080:8080"
-
-  # ---- Frontend (React + Vite) — раскомментировать после настройки ----
-  # frontend:
-  #   build: ./frontend
-  #   container_name: tramplin-frontend
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3000:3000"
-
 volumes:
   pgdata:
     driver: local
