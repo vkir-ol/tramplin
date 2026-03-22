@@ -2,12 +2,14 @@
 
 
 import { useState, useEffect, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getCompanyProfile, updateCompanyProfile } from '../api/employer';
+import { getMyOpportunities, deleteOpportunity } from '../api/opportunities';
 import { getErrorMessage } from '../api/client';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import type { CompanyProfileResponse, UpdateCompanyRequest } from '../types';
+import type { CompanyProfileResponse, UpdateCompanyRequest, OpportunityResponse } from '../types';
 import styles from './Dashboard.module.css';
 
 const verificationLabels: Record<string, string> = {
@@ -22,6 +24,33 @@ const verificationColors: Record<string, string> = {
   PENDING: '#d97706',
   VERIFIED: '#059669',
   REJECTED: '#dc2626',
+};
+
+const typeLabels: Record<string, string> = {
+  VACANCY: 'Вакансия',
+  INTERNSHIP: 'Стажировка',
+  MENTORSHIP: 'Менторство',
+  EVENT: 'Мероприятие',
+};
+
+const statusLabels: Record<string, string> = {
+  DRAFT: 'Черновик',
+  ACTIVE: 'Активна',
+  CLOSED: 'Закрыта',
+  ON_MODERATION: 'На модерации',
+};
+
+const statusColors: Record<string, string> = {
+  DRAFT: '#6b7280',
+  ACTIVE: '#059669',
+  CLOSED: '#dc2626',
+  ON_MODERATION: '#d97706',
+};
+
+const workFormatLabels: Record<string, string> = {
+  OFFICE: '🏢 Офис',
+  HYBRID: '🔄 Гибрид',
+  REMOTE: '🏠 Удалённо',
 };
 
 // Вспомогательная функция — текст баннера верификации
@@ -52,6 +81,7 @@ function getVerificationBanner(status: string): { icon: string; title: string; t
 
 export function EmployerDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [profile, setProfile] = useState<CompanyProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,6 +89,11 @@ export function EmployerDashboard() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Вакансии работодателя
+  const [opportunities, setOpportunities] = useState<OpportunityResponse[]>([]);
+  const [oppsLoading, setOppsLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<UpdateCompanyRequest>({
     companyName: '',
@@ -74,6 +109,10 @@ export function EmployerDashboard() {
 
   useEffect(() => {
     loadProfile();
+  }, []);
+
+  useEffect(() => {
+    loadOpportunities();
   }, []);
 
   async function loadProfile() {
@@ -98,6 +137,38 @@ export function EmployerDashboard() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function loadOpportunities() {
+    setOppsLoading(true);
+    try {
+      const data = await getMyOpportunities();
+      setOpportunities(data);
+    } catch (err) {
+      console.error('Не удалось загрузить вакансии:', err);
+    } finally {
+      setOppsLoading(false);
+    }
+  }
+
+  async function handleDeleteOpportunity(id: string) {
+    if (!confirm('Удалить эту вакансию? Это действие необратимо.')) return;
+    setDeletingId(id);
+    try {
+      await deleteOpportunity(id);
+      setOpportunities(prev => prev.filter(o => o.id !== id));
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  function formatSalary(min: number | null, max: number | null): string {
+    if (min && max) return `${min.toLocaleString('ru-RU')} – ${max.toLocaleString('ru-RU')} ₽`;
+    if (min) return `от ${min.toLocaleString('ru-RU')} ₽`;
+    if (max) return `до ${max.toLocaleString('ru-RU')} ₽`;
+    return 'По договорённости';
   }
 
   function handleChange(field: keyof UpdateCompanyRequest, value: string) {
@@ -191,6 +262,7 @@ export function EmployerDashboard() {
           </div>
         )}
 
+        {/* Профиль компании */}
         <section className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Профиль компании</h2>
@@ -216,16 +288,16 @@ export function EmployerDashboard() {
             <form onSubmit={handleSave} className={styles.editForm}>
               <div className={styles.formRow}>
                 <Input
-                  label="Название компании *"
+                  label="Название компании "
                   value={form.companyName}
                   onChange={(e) => handleChange('companyName', e.target.value)}
-                  placeholder="ООО «КодИнсайт»"
+                  placeholder="Сбербанк"
                 />
                 <Input
                   label="ИНН"
                   value={form.inn || ''}
                   onChange={(e) => handleChange('inn', e.target.value)}
-                  placeholder="123456789"
+                  placeholder="123456789012"
                 />
                 <Input
                   label="Сфера деятельности"
@@ -368,25 +440,88 @@ export function EmployerDashboard() {
           )}
         </section>
 
-        <div className={styles.grid}>
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>📝 Мои вакансии</h2>
-            </div>
-            <p className={styles.placeholder}>
-              {isNotVerified
-                ? 'Создание вакансий станет доступно после верификации'
-                : 'Активные, закрытые и запланированные вакансии'}
-            </p>
-          </section>
+        {/* Мои возможности */}
+        <section className={`${styles.card} ${styles.cardFull}`}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>📝 Мои возможности</h2>
+            {!isNotVerified && (
+              <Button size="sm" onClick={() => navigate('/company/opportunities/new')}>
+                + Создать
+              </Button>
+            )}
+          </div>
 
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>👤 Отклики</h2>
+          {isNotVerified ? (
+            <p className={styles.placeholder}>
+              Создание вакансий станет доступно после верификации компании.
+            </p>
+          ) : oppsLoading ? (
+            <p className={styles.placeholder}>Загрузка вакансий...</p>
+          ) : opportunities.length === 0 ? (
+            <div className={styles.emptyState}>
+              <p>У вас пока нет вакансий.</p>
+              <Button size="sm" onClick={() => navigate('/company/opportunities/new')}>
+                Создать первую
+              </Button>
             </div>
-            <p className={styles.placeholder}>Список откликнувшихся соискателей</p>
-          </section>
-        </div>
+          ) : (
+            <div className={styles.opportunitiesList}>
+              {opportunities.map(opp => (
+                <div key={opp.id} className={styles.oppCard}>
+                  <div className={styles.oppMain}>
+                    <div className={styles.oppTop}>
+                      <span
+                        className={styles.oppStatus}
+                        style={{ color: statusColors[opp.status] || '#6b7280' }}
+                      >
+                        {statusLabels[opp.status] || opp.status}
+                      </span>
+                      <span className={styles.oppType}>
+                        {typeLabels[opp.type] || opp.type}
+                      </span>
+                    </div>
+                    <h3
+                      className={styles.oppTitle}
+                      onClick={() => navigate(`/opportunities/${opp.id}`)}
+                    >
+                      {opp.title}
+                    </h3>
+                    <div className={styles.oppMeta}>
+                      <span>{workFormatLabels[opp.workFormat] || opp.workFormat}</span>
+                      <span>📍 {opp.city}</span>
+                      <span>{formatSalary(opp.salaryMin, opp.salaryMax)}</span>
+                    </div>
+                  </div>
+                  <div className={styles.oppActions}>
+                    <button
+                      className={styles.oppBtnEdit}
+                      onClick={() => navigate(`/opportunities/${opp.id}`)}
+                      title="Просмотр"
+                    >
+                      👁
+                    </button>
+                    <button
+                      className={styles.oppBtnDelete}
+                      onClick={() => handleDeleteOpportunity(opp.id)}
+                      disabled={deletingId === opp.id}
+                      title="Удалить"
+                    >
+                      {deletingId === opp.id ? '⏳' : '🗑'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Отклики(еще не готово)*/}
+        <section className={`${styles.card} ${styles.cardFull}`}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>👤 Отклики</h2>
+          </div>
+          <p className={styles.placeholder}>Список откликнувшихся соискателей — в разработке</p>
+        </section>
       </div>
     </main>
   );

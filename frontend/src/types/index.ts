@@ -166,8 +166,7 @@ export enum OpportunityStatus {
   DRAFT = 'DRAFT',
   ACTIVE = 'ACTIVE',
   CLOSED = 'CLOSED',
-  REJECTED = 'REJECTED',
-  PENDING_MODERATION = 'PENDING_MODERATION',
+  ON_MODERATION = 'ON_MODERATION',
 }
 
 
@@ -215,7 +214,7 @@ export interface OpportunityResponse {
   contactPhone: string | null;
   contactUrl: string | null;    // ссылка на возможный сайт компании
 
-  employerID: string;
+  employerId: string;
   companyName: string;
   logoUrl: string | null;
 
@@ -256,12 +255,11 @@ export interface OpportunityRequest {
   address?: string | null;
   salaryMin?: number | null;
   salaryMax?: number | null;
-  salaryCurrency?: string | null;
   eventDate?: string | null;
   expiresAt?: string | null;
-  tagIds: string[];
+  tagIds?: string[];
   contactPhone?: string | null;
-  contactEmail?: string | null;
+  contactEmail: string | null;
   contactUrl?: string | null; 
 }
 

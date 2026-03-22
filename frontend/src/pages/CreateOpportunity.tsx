@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createOpportunity } from '../api/opportunities';
-import { getTags } from '../api/tags';
-import type { OpportunityRequest, Tag } from '../types';
+import type { OpportunityRequest, } from '../types';
 import { OpportunityType, WorkFormat } from '../types';
 import styles from './CreateOpportunity.module.css';
 import { getCompanyProfile } from '../api/employer';
@@ -27,22 +26,17 @@ export default function CreateOpportunity() {
     address: null,
     salaryMin: null,
     salaryMax: null,
-    salaryCurrency: 'RUB',
     expiresAt: null,
     eventDate: null,
-    tagIds: [],
     contactEmail: null,
     contactPhone: null,
     contactUrl: null,
   });
 
-  // Список доступных тегов из справочника
-  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 
   // Состояния UI
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tagsLoading, setTagsLoading] = useState(true);
 
 
   const [verified, setVerified] = useState<boolean | null>(null);
@@ -59,20 +53,6 @@ export default function CreateOpportunity() {
     checkVerification();
   }, []);
 
-
-  useEffect(() => {
-    async function loadTags() {
-      try {
-        const tags = await getTags();
-        setAvailableTags(tags);
-      } catch {
-        console.error('Не удалось загрузить теги');
-      } finally {
-        setTagsLoading(false);
-      }
-    }
-    loadTags();
-  }, []);
 
   // Обработчики изменения полей
 
@@ -93,18 +73,6 @@ export default function CreateOpportunity() {
     }));
   }
 
-  /* Переключение тега: добавить/убрать из выбранных */
-  function toggleTag(tagId: string) {
-    setForm(prev => {
-      const exists = prev.tagIds.includes(tagId);
-      return {
-        ...prev,
-        tagIds: exists
-          ? prev.tagIds.filter(id => id !== tagId)
-          : [...prev.tagIds, tagId],
-      };
-    });
-  }
 
   // Валидация перед отправкой
   function validate(): string | null {
@@ -130,7 +98,9 @@ export default function CreateOpportunity() {
     if (form.type === OpportunityType.EVENT && !form.eventDate) {
       return 'Укажите дату проведения мероприятия';
     }
-    if (form.tagIds.length === 0) return 'Выберите хотя бы один тег';
+    if (!form.contactEmail?.trim()) { 
+        return 'Укажите контактный email';
+    }
     return null;
   }
 
@@ -148,8 +118,13 @@ export default function CreateOpportunity() {
 
     setLoading(true);
     try {
-      await createOpportunity(form);
-      navigate('/company'); // Возврат в ЛК работодателя
+        const payload = {
+            ...form,
+            expiresAt: form.expiresAt ? form.expiresAt + 'T00:00:00' : null,
+            eventDate: form.eventDate ? form.eventDate + 'T00:00:00' : null,
+        };
+    await createOpportunity(payload);
+    navigate('/company'); // Возврат в ЛК работодателя
     } catch (err: any) {
       // Пытаемся достать сообщение от backend
       const message =
@@ -179,20 +154,14 @@ export default function CreateOpportunity() {
     );
   }
 
-  // Группировка тегов по категориям для отображения
-  const tagsByCategory = availableTags.reduce<Record<string, Tag[]>>((acc, tag) => {
-    const cat = tag.category || 'Другое';
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(tag);
-    return acc;
-  }, {});
-
+/*
   const categoryLabels: Record<string, string> = {
     LANGUAGE: 'Языки программирования',
     FRAMEWORK: 'Фреймворки и библиотеки',
     LEVEL: 'Уровень',
     EMPLOYMENT_TYPE: 'Тип занятости',
   };
+*/
 
   return (
     <div className={styles.container}>
@@ -207,7 +176,7 @@ export default function CreateOpportunity() {
 
       <form onSubmit={handleSubmit} className={styles.form}>
 
-        {/* ОСНОВНАЯ ИНФОРМАЦИЯ */}
+        {/* Основная информация */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Основная информация</h2>
 
@@ -333,20 +302,6 @@ export default function CreateOpportunity() {
                 min={0}
               />
             </label>
-
-            <label className={styles.field}>
-              <span className={styles.label}>Валюта</span>
-              <select
-                name="salaryCurrency"
-                value={form.salaryCurrency || 'RUB'}
-                onChange={handleChange}
-                className={styles.select}
-              >
-                <option value="RUB">₽ RUB</option>
-                <option value="USD">$ USD</option>
-                <option value="EUR">€ EUR</option>
-              </select>
-            </label>
           </div>
         </section>
 
@@ -382,46 +337,20 @@ export default function CreateOpportunity() {
           </div>
         </section>
 
-        {/* ТЕГИ */}
+        {/* ТЕГИ — будут доступны после реализации на backend */}
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>Теги *</h2>
-          <p className={styles.hint}>Выберите технологии, уровень и тип занятости.</p>
-
-          {tagsLoading ? (
-            <p className={styles.hint}>Загрузка тегов...</p>
-          ) : (
-            Object.entries(tagsByCategory).map(([category, tags]) => (
-              <div key={category} className={styles.tagGroup}>
-                <h3 className={styles.tagGroupTitle}>
-                  {categoryLabels[category] || category}
-                </h3>
-                <div className={styles.tagList}>
-                  {tags.map(tag => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      className={`${styles.tagChip} ${
-                        form.tagIds.includes(tag.id) ? styles.tagChipActive : ''
-                      }`}
-                      onClick={() => toggleTag(tag.id)}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))
-          )}
+            <h2 className={styles.sectionTitle}>Теги</h2>
+            <p className={styles.hint}>Теги будут доступны позже</p>
         </section>
 
         {/* КОНТАКТЫ */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Контактная информация</h2>
-          <p className={styles.hint}>Необязательно. Если не указать — будут использованы контакты из профиля компании.</p>
+          <p className={styles.hint}>Email обязателен. Остальные контакты — по желанию.</p>
 
           <div className={styles.row}>
             <label className={styles.field}>
-              <span className={styles.label}>Email</span>
+              <span className={styles.label}>Email *</span>
               <input
                 type="email"
                 name="contactEmail"

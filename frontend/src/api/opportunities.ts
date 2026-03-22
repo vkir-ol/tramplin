@@ -73,7 +73,7 @@ export async function updateOpportunity(
     id: string,
     data: OpportunityRequest
 ): Promise<OpportunityResponse> {
-    const response = await client.put<ApiResponse<OpportunityResponse>>(
+    const response = await client.patch<ApiResponse<OpportunityResponse>>(
         `/opportunities/${id}`, data
     );
     return response.data.data!;
@@ -87,29 +87,17 @@ export async function deleteOpportunity(id: string): Promise<void> {
 
 
 // Возможности для ЛК преподавателя
-export async function getMyOpportunities(
-    filters?: Pick<OpportunityFilters, 'page' | 'size' | 'type'>
-): Promise<PaginatedResponse<OpportunityResponse>> {
-    const params: Record<string, string | number> = {};
-
-    if (filters?.type)
-        params.type = filters.type;
-    if (filters?.page !== undefined)
-        params.page = filters?.page;
-    if (filters?.size)
-        params.size = filters.size;
-
-    const response = await client.get<ApiResponse<PaginatedResponse<OpportunityResponse>>>(
-        '/opportunities/my', {params}
-    );
+export async function getMyOpportunities(): Promise<OpportunityResponse[]> {
+    const response = await client.get<ApiResponse<OpportunityResponse[]>>('/opportunities/my');
     return response.data.data!;
 }
 
 
-
+/*
 export async function closeOpportunity(id: string): Promise<OpportunityResponse> {
     const response = await client.patch<ApiResponse<OpportunityResponse>>(
         `/opportunities/${id}/close`
     );
     return response.data.data!;
 }
+*/

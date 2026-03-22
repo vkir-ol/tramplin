@@ -68,7 +68,7 @@ export function Header() {
                   }}
                 >
                   <div className={styles.avatar}>
-                    {user.displayName.charAt(0).toUpperCase()}
+                    {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
                   </div>
                   <div className={styles.profileInfo}>
                     <span className={styles.profileName}>{user.displayName}</span>
