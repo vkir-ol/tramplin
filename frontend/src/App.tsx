@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { ApplicantDashboard } from './pages/ApplicantDashboard';
 import { EmployerDashboard } from './pages/EmployerDashboard';
 import { CuratorDashboard } from './pages/CuratorDashboard';
+import CreateOpportunity from './pages/CreateOpportunity';
 
 /*
 Корневой компонент приложения
@@ -59,6 +60,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+
+          <Route
+            path="/company/opportunities/new"
+            element={
+              <ProtectedRoute allowedRoles={['EMPLOYER']}>
+                <CreateOpportunity />
+              </ProtectedRoute>
+            }
+          />
+
         </Routes>
       </AuthProvider>
     </BrowserRouter>

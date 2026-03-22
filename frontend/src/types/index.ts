@@ -106,3 +106,186 @@ export interface UserResponse {
   status: AccountStatus;
   createdAt: string;
 }
+
+
+
+
+
+// КАРТОЧКИ ВОЗМОЖНОСТЕЙ
+
+/*
+
+Каждый тип влияет на отображение карточки
+  VACANCY     - обычная вакансия
+  INTERNSHIP  - стажировка
+  MENTORSHIP  - менторская программа
+  EVENT       - карьерное мероприятие(хакатоны, бауманкоды, фонкоды и тд)
+
+*/
+
+export enum OpportunityType {
+  VACANCY = 'VACANCY',
+  INTERNSHIP = 'INTERNSHIP',
+  MENTORSHIP = 'MENTORSHIP',
+  EVENT = 'EVENT',
+}
+
+/*
+
+ФОРМАТ РАБОТЫ
+
+  OFFICE - маркер на карте по точному адресу 
+  HYBRID - маркер на карте по адресу офиса
+  REMOTE - маркер по городу работодателя
+
+*/
+
+export enum WorkFormat {
+  OFFICE = 'OFFICE',
+  HYBRID = 'HYBRID',
+  REMOTE = 'REMOTE',
+}
+
+
+
+
+
+/*
+
+СТАТУСЫ КАРТОЧЕК ВОЗМОЖНОСТЕЙ
+
+  DRAFT               - черновик 
+  ACTIVE              - опубликована и видна всем
+  CLOSED              - закрыта работодателем
+  REJECTED            - отклонена куратором
+  PENDING_MODERATION  - на модерации
+
+*/
+
+export enum OpportunityStatus {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  CLOSED = 'CLOSED',
+  REJECTED = 'REJECTED',
+  PENDING_MODERATION = 'PENDING_MODERATION',
+}
+
+
+export interface Tag {
+  id: string;
+  name: string;
+  category: string; // это может быть язык, фреймворк, уровень
+}
+
+
+export interface CompanySummary {
+  id: string;
+  companyName: string;
+  logoUrl: string | null;
+  industry: string | null;
+  city: string | null;
+}
+
+
+// ПОЛНАЯ КАРТОЧКА ВОЗМОЖНОСТИ
+
+export interface OpportunityResponse {
+  id: string;
+  title: string;                // название мероприятия
+  description: string;          // описание
+  type: OpportunityType;        // тип(перечесления выше)
+  workFormat: WorkFormat;       // офис/гибрид/удаленка
+  status: OpportunityStatus;    // статус
+
+  // Месторасположение
+  city: string;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+
+
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryCurrency: string | null; // валюта
+
+  publishedAt: string | null;
+  expiresAt: string | null;
+  eventDate: string | null;
+
+
+  company: CompanySummary;
+  tags: Tag[];              // технологии, уровень ...
+
+  contactEmail: string | null;
+  contactPhone: string | null;
+  contactUrl: string | null;    // ссылка на возможный сайт компании
+
+  createdAt: string;
+  updatedAt: string;
+
+}
+
+
+
+/* 
+Короткая версия карточки для маркера на карте
+Отобразится контент при наведении на маркер
+*/
+
+export interface OpportunityMapCard {
+  id: string;
+  title: string;
+  companyName: string;
+  companyLogoUrl: string | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryCurrency: string | null;
+  tags: Pick< Tag, 'id' | 'name' >[];
+  workFormat: WorkFormat;
+  city: string;
+  latitude: number;
+  longitude: number;
+}
+
+
+
+// Запрос на создание/редактирование карточки (POST /opportunities / PUT /opportunities)
+
+export interface OpportunityRequest {
+  title: string;
+  type: OpportunityType;
+  workFormat: WorkFormat;
+  description: string;
+  city: string;
+  address?: string | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryCurrency?: string | null;
+  eventDate?: string | null;
+  expiresAt?: string | null;
+  tagIds: string[];
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  contactUrl?: string | null; 
+}
+
+
+export interface PaginatedResponse<T> {
+  content: T[];           // массив элементов текущей страницы
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+}
+
+
+export interface OpportunityFilters {
+  type?: OpportunityType;
+  workFormat?: WorkFormat;
+  city?: string;
+  salaryMin?: number;
+  tagIds?: string[];
+  page?: number;
+  size?: number;
+  search?: string;  // поиск по названию или описанию
+}
