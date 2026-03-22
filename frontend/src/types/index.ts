@@ -203,25 +203,22 @@ export interface OpportunityResponse {
   latitude: number | null;
   longitude: number | null;
 
-
   salaryMin: number | null;
   salaryMax: number | null;
-  salaryCurrency: string | null; // валюта
 
   publishedAt: string | null;
   expiresAt: string | null;
   eventDate: string | null;
 
 
-  company: CompanySummary;
-  tags: Tag[];              // технологии, уровень ...
-
   contactEmail: string | null;
   contactPhone: string | null;
   contactUrl: string | null;    // ссылка на возможный сайт компании
 
-  createdAt: string;
-  updatedAt: string;
+  employerID: string;
+  companyName: string;
+  logoUrl: string | null;
+
 
 }
 
@@ -236,15 +233,14 @@ export interface OpportunityMapCard {
   id: string;
   title: string;
   companyName: string;
-  companyLogoUrl: string | null;
-  salaryMin: number | null;
-  salaryMax: number | null;
-  salaryCurrency: string | null;
-  tags: Pick< Tag, 'id' | 'name' >[];
+  logoUrl: string | null;
+  type: OpportunityType;
   workFormat: WorkFormat;
   city: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
 }
 
 

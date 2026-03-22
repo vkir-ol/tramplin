@@ -7,6 +7,7 @@ import { ApplicantDashboard } from './pages/ApplicantDashboard';
 import { EmployerDashboard } from './pages/EmployerDashboard';
 import { CuratorDashboard } from './pages/CuratorDashboard';
 import CreateOpportunity from './pages/CreateOpportunity';
+import OpportunityPage from './pages/OpportunityPage';
 
 /*
 Корневой компонент приложения
@@ -70,6 +71,9 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/opportunities/:id" element={<OpportunityPage />} />
+
 
         </Routes>
       </AuthProvider>

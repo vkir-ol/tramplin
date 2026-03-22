@@ -36,32 +36,15 @@ export async function getOpportunities(
 
 
 // Для маркеров на карте
+
 export async function getOpportunitiesForMap(
-    filters?: Omit<OpportunityFilters, 'page' | 'size'>
+  bounds: { swLat: number; swLng: number; neLat: number; neLng: number }
 ): Promise<OpportunityMapCard[]> {
-    const params: Record<string, string | number> = {};
-
-    if (filters?.type) 
-        params.type = filters.type;
-    if (filters?.workFormat) 
-        params.workFormat = filters.workFormat;
-    if (filters?.city) 
-        params.city = filters.city;
-    if (filters?.salaryMin) 
-        params.salaryMin = filters.salaryMin;
-    if (filters?.search) 
-        params.search = filters.search;
-
-
-    if (filters?.tagIds && filters.tagIds.length > 0) {
-        (params as any).tagIds = filters.tagIds;
-    }
-
-
-    const response = await client.get<ApiResponse<OpportunityMapCard[]>>(
-        '/opportunities/map', {params}
-    );
-    return response.data.data!;
+  const response = await client.get<ApiResponse<OpportunityMapCard[]>>(
+    '/opportunities/map',
+    { params: bounds }
+  );
+  return response.data.data!;
 }
 
 
