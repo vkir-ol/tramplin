@@ -496,3 +496,57 @@
     text-align: center;
   }
 }
+
+
+
+/*теги- фильтры*/
+.tagFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  max-height: 120px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.tagChip {
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border, #d1d5db);
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.tagChip:hover {
+  border-color: var(--accent, #E8622C);
+  color: var(--accent, #E8622C);
+}
+
+.tagChipActive {
+  background: var(--accent, #E8622C);
+  border-color: var(--accent, #E8622C);
+  color: #fff;
+}
+
+
+
+.listCardTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.listCardTag {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--accent-light, #fff3ed);
+  color: var(--accent, #E8622C);
+  font-size: 11px;
+  font-weight: 500;
+}

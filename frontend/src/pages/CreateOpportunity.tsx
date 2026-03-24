@@ -5,6 +5,8 @@ import type { OpportunityRequest, } from '../types';
 import { OpportunityType, WorkFormat } from '../types';
 import styles from './CreateOpportunity.module.css';
 import { getCompanyProfile } from '../api/employer';
+import { getTags } from '../api/tags';
+import type { Tag } from '../types';
 
 /*
     Страница создания карточки возможности
@@ -40,6 +42,33 @@ export default function CreateOpportunity() {
 
 
   const [verified, setVerified] = useState<boolean | null>(null);
+
+  // Теги
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    async function loadTags() {
+      try {
+        const data = await getTags();
+        setAllTags(data);
+      } catch (err) {
+        console.error('Ошибка загрузки тегов:', err);
+      }
+    }
+    loadTags();
+  }, []);
+
+  function handleTagToggle(tagId: string) {
+    setSelectedTagIds(prev =>
+      prev.includes(tagId)
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  }
+
+
+
 
   useEffect(() => {
     async function checkVerification() {
@@ -122,7 +151,9 @@ export default function CreateOpportunity() {
             ...form,
             expiresAt: form.expiresAt ? form.expiresAt + 'T00:00:00' : null,
             eventDate: form.eventDate ? form.eventDate + 'T00:00:00' : null,
+            tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined,
         };
+
     await createOpportunity(payload);
     navigate('/company'); // Возврат в ЛК работодателя
     } catch (err: any) {
@@ -337,10 +368,34 @@ export default function CreateOpportunity() {
           </div>
         </section>
 
-        {/* ТЕГИ — будут доступны после реализации на backend */}
+        {/* Теги */}
         <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Теги</h2>
-            <p className={styles.hint}>Теги будут доступны позже</p>
+          <h2 className={styles.sectionTitle}>Теги</h2>
+          <p className={styles.hint}>Выберите технологии, уровень и тип занятости</p>
+
+          {allTags.length > 0 ? (
+            <div className={styles.tagsGrid}>
+              {allTags.map(tag => {
+                const isSelected = selectedTagIds.includes(tag.id);
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    className={`${styles.tagChip} ${isSelected ? styles.tagChipActive : ''}`}
+                    onClick={() => handleTagToggle(tag.id)}
+                  >
+                    {tag.name}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className={styles.hint}>Загрузка тегов...</p>
+          )}
+
+          {selectedTagIds.length > 0 && (
+            <p className={styles.hint}>Выбрано: {selectedTagIds.length}</p>
+          )}
         </section>
 
         {/* КОНТАКТЫ */}

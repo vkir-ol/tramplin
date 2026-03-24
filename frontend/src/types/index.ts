@@ -170,11 +170,41 @@ export enum OpportunityStatus {
 }
 
 
+export enum TagCategory {
+  LANGUAGE = 'LANGUAGE',
+  FRAMEWORK = 'FRAMEWORK',
+  LEVEL = 'LEVEL',
+  SPECIALIZATION = 'SPECIALIZATION',
+  EMPLOYMENT_TYPE = 'EMPLOYMENT_TYPE',
+  TOOL = 'TOOL',
+  DATABASE = 'DATABASE',
+}
+
+
 export interface Tag {
   id: string;
   name: string;
-  category: string; // это может быть язык, фреймворк, уровень
+  category: TagCategory;
+  approved: boolean;
+  parentId: string | null;
+  parentName: string | null;
 }
+
+
+export interface TagTreeResponse {
+  id: string;
+  name: string;
+  category: TagCategory;
+  children: TagTreeResponse[];
+}
+
+
+export interface OfferTagRequest {
+  name: string;
+  category: TagCategory;
+  parentId?: string;
+}
+
 
 
 export interface CompanySummary {
@@ -218,6 +248,7 @@ export interface OpportunityResponse {
   companyName: string;
   logoUrl: string | null;
 
+  tags: string[]; // массив имен тегов
 
 }
 
@@ -240,6 +271,7 @@ export interface OpportunityMapCard {
   longitude: number | null;
   salaryMin: number | null;
   salaryMax: number | null;
+  tags: string[];
 }
 
 

@@ -492,3 +492,64 @@
         gap: 0.5rem;
     }
 }
+
+
+
+/* Избранное */
+.favList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.favItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--bg-secondary, #f9fafb);
+    transition: background 0.15s ease;
+}
+
+.favItem:hover {
+    background: var(--bg-tertiary, #f3f4f6);
+}
+
+.favInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.favTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a1a);
+}
+
+.favInfo:hover .favTitle {
+    color: var(--accent, #E8622C);
+}
+
+.favCompany {
+    font-size: 12px;
+    color: var(--text-secondary, #6b7280);
+}
+
+.favRemove {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: var(--text-secondary, #6b7280);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.favRemove:hover {
+    color: #dc2626;
+    background: #fef2f2;
+}

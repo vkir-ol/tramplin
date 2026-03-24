@@ -257,3 +257,35 @@
         text-align: center;
     }
 }
+
+
+/* Теги */
+.tagsGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+
+.tagChip {
+    padding: 6px 15px;
+    border-radius: 16px;
+    border: 1px solid var(--border, #d1d5db);
+    background: transparent;
+    font-size: 13px;
+    color: var(--text-secondary, #6b7280);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tagChip:hover {
+    border-color: var(--accent, #E8622C);
+    color: var(--accent, #E8622C);
+}
+
+
+.tagChipActive {
+    background: var(--accent, #E8622C);
+    border-color: var(--accent, #E8622C);
+    color: #fff;
+}

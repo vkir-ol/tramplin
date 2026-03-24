@@ -6,6 +6,8 @@ import MapView from '../components/map/Map';
 import type { OpportunityResponse, OpportunityFilters } from '../types';
 import { OpportunityType, WorkFormat } from '../types';
 import styles from './HomePage.module.css';
+import { getTags } from '../api/tags';
+import type { Tag } from '../types';
 
 
 /*
@@ -67,6 +69,37 @@ export function HomePage() {
   // Счётчик маркеров на карте
   const [markerCount, setMarkerCount] = useState<number | null>(null);
 
+  // Теги для фильтра
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [tagsLoading, setTagsLoading] = useState(false);
+
+  // Загрузка тегов при монтировании
+  useEffect(() => {
+    async function loadTags() {
+      setTagsLoading(true);
+      try {
+        const data = await getTags();
+        setAllTags(data);
+      } catch (err) {
+        console.error('Ошибка загрузки тегов:', err);
+      } finally {
+        setTagsLoading(false);
+      }
+    }
+    loadTags();
+  }, []);
+
+  // Обработчик выбора/снятия тега
+  function handleTagToggle(tagId: string) {
+    setFilters(prev => {
+      const current = prev.tagIds || [];
+      const next = current.includes(tagId)
+        ? current.filter(id => id !== tagId)
+        : [...current, tagId];
+      return { ...prev, tagIds: next.length > 0 ? next : undefined, page: 0 };
+    });
+  }
+
   // Загрузка ленты при переключении на список или изменении фильтров
   useEffect(() => {
     if (viewMode === 'list') {
@@ -108,7 +141,7 @@ export function HomePage() {
     setFilters({ page: 0, size: 20 });
   }
 
-  const hasActiveFilters = !!(filters.type || filters.workFormat || filters.city || filters.salaryMin);
+  const hasActiveFilters = !!(filters.type || filters.workFormat || filters.city || filters.salaryMin || (filters.tagIds && filters.tagIds.length > 0));
 
   return (
     <main className={styles.main}>
@@ -202,6 +235,25 @@ export function HomePage() {
                 ✕ Сбросить
               </button>
             )}
+
+            {/* Теги */}
+            {!tagsLoading && allTags.length > 0 && (
+              <div className={styles.tagFilters}>
+                {allTags.map(tag => {
+                  const isSelected = (filters.tagIds || []).includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      className={`${styles.tagChip} ${isSelected ? styles.tagChipActive : ''}`}
+                      onClick={() => handleTagToggle(tag.id)}
+                    >
+                      {tag.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
           </div>
 
           {/* Счётчик */}
@@ -219,7 +271,7 @@ export function HomePage() {
           {viewMode === 'map' ? (
             /* Карта */
             <div className={styles.mapWrapper}>
-              <MapView onMarkersLoaded={setMarkerCount} />
+              <MapView onMarkersLoaded={setMarkerCount} tagIds={filters.tagIds} />
             </div>
           ) : (
             /* Список */
@@ -267,6 +319,15 @@ export function HomePage() {
                           </div>
                           <span>{opp.companyName}</span>
                         </div>
+
+                        {/* Теги */}
+                        {opp.tags && opp.tags.length > 0 && (
+                          <div className={styles.listCardTags}>
+                            {opp.tags.slice(0, 3).map((tag, i) => (
+                              <span key={i} className={styles.listCardTag}>{tag}</span>
+                            ))}
+                          </div>
+                        )}
 
                         {/* Город и зарплата */}
                         <div className={styles.listCardBottom}>

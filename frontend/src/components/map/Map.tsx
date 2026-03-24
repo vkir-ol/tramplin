@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { YMaps, Map, Clusterer, Placemark } from '@pbe/react-yandex-maps';
 import { getOpportunitiesForMap } from '../../api/opportunities';
 import type { OpportunityMapCard } from '../../types';
 import styles from './Map.module.css';
+import { useFavorites } from '../../hooks/useFavorites';
 
 /*
   Компонент Яндекс карты с маркерами вакансий
@@ -56,6 +57,11 @@ function buildBalloonContent(opp: OpportunityMapCard): string {
         <span style="font-size:12px;color:#6b6b6b;">${FORMAT_LABELS[opp.workFormat] || opp.workFormat}</span>
         <span style="font-size:12px;color:#6b6b6b;">📍 ${opp.city}</span>
       </div>
+      ${opp.tags && opp.tags.length > 0 ? `
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+          ${opp.tags.slice(0, 3).map(tag => `<span style="padding:2px 8px;border-radius:10px;background:#fff3ed;color:#E8622C;font-size:11px;font-weight:500;">${tag}</span>`).join('')}
+        </div>
+      ` : ''}
       <div style="font-size:13px;font-weight:600;color:#E8622C;">${formatSalary(opp.salaryMin, opp.salaryMax)}</div>
       <a href="/opportunities/${opp.id}" style="display:inline-block;margin-top:10px;font-size:12px;color:#E8622C;text-decoration:none;font-weight:600;">Подробнее →</a>
     </div>
@@ -64,25 +70,26 @@ function buildBalloonContent(opp: OpportunityMapCard): string {
 
 interface MapViewProps {
   onMarkersLoaded?: (count: number) => void;
+  tagIds?: string[];
 }
 
-export default function MapView({ onMarkersLoaded }: MapViewProps) {
+export default function MapView({ onMarkersLoaded, tagIds }: MapViewProps) {
   const [markers, setMarkers] = useState<OpportunityMapCard[]>([]);
   const [loading, setLoading] = useState(false);
+  const mapRef = useRef<any>(null);
+  const { isFavorite } = useFavorites();
 
   // Загрузка маркеров при изменении видимой области карты
-  const handleBoundsChange = useCallback(async (e: any) => {
+  const loadMarkers = useCallback(async (map: any) => {
     try {
-      const map = e.get('target');
       const bounds = map.getBounds();
-      // bounds = [[swLat, swLng], [neLat, neLng]]
       const swLat = bounds[0][0];
       const swLng = bounds[0][1];
       const neLat = bounds[1][0];
       const neLng = bounds[1][1];
 
       setLoading(true);
-      const data = await getOpportunitiesForMap({ swLat, swLng, neLat, neLng });
+      const data = await getOpportunitiesForMap({ swLat, swLng, neLat, neLng }, tagIds);
       setMarkers(data);
       onMarkersLoaded?.(data.length);
     } catch (err) {
@@ -90,8 +97,24 @@ export default function MapView({ onMarkersLoaded }: MapViewProps) {
     } finally {
       setLoading(false);
     }
-  }, [onMarkersLoaded]);
+  }, [onMarkersLoaded, tagIds]);
 
+  const handleBoundsChange = useCallback((e: any) => {
+    const map = e.get('target');
+    mapRef.current = map;
+    loadMarkers(map);
+  }, [loadMarkers]);
+
+  // При смене тегов — перезагружаем маркеры с текущими bounds
+  useEffect(() => {
+    if (mapRef.current) {
+      loadMarkers(mapRef.current);
+    }
+  }, [tagIds, loadMarkers]);
+
+
+
+  
   return (
     <div className={styles.mapContainer}>
       {loading && <div className={styles.mapLoader}>Загрузка маркеров...</div>}
@@ -120,7 +143,9 @@ export default function MapView({ onMarkersLoaded }: MapViewProps) {
                 key={opp.id}
                 geometry={[opp.latitude!, opp.longitude!]}
                 options={{
-                  preset: MARKER_PRESETS[opp.type] || 'islands#blueCircleDotIcon',
+                  preset: isFavorite(opp.id)
+                  ? 'islands#orangeCircleDotIcon'
+                  : (MARKER_PRESETS[opp.type] || 'islands#blueCircleDotIcon'),
                 }}
                 properties={{
                   balloonContentBody: buildBalloonContent(opp),

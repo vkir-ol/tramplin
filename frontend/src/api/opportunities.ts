@@ -21,7 +21,6 @@ export async function getOpportunities(
     if (filters?.size) 
         params.size = filters.size; 
 
-
     if (filters?.tagIds && filters.tagIds.length > 0) {
         (params as any).tagIds = filters.tagIds;
     }
@@ -38,11 +37,16 @@ export async function getOpportunities(
 // Для маркеров на карте
 
 export async function getOpportunitiesForMap(
-  bounds: { swLat: number; swLng: number; neLat: number; neLng: number }
+  bounds: { swLat: number; swLng: number; neLat: number; neLng: number },
+  tagIds?: string[]
 ): Promise<OpportunityMapCard[]> {
+  const params: Record<string, any> = { ...bounds };
+  if (tagIds && tagIds.length > 0) {
+    params.tagIds = tagIds;
+  }
   const response = await client.get<ApiResponse<OpportunityMapCard[]>>(
     '/opportunities/map',
-    { params: bounds }
+    { params }
   );
   return response.data.data!;
 }

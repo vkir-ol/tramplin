@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import type { OpportunityResponse } from '../types';
 import { OpportunityType, WorkFormat } from '../types';
 import styles from './OpportunityPage.module.css';
-
+import { useFavorites } from '../hooks/useFavorites';
 /*
     Публичная страница просмотра карточки возможности.
     Доступна всем — авторизованным и гостям.
@@ -18,6 +18,7 @@ export default function OpportunityPage() {
   const [opportunity, setOpportunity] = useState<OpportunityResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   useEffect(() => {
     async function load() {
@@ -134,6 +135,13 @@ export default function OpportunityPage() {
         </div>
 
         <div className={styles.heroRight}>
+          <button
+            className={`${styles.favBtn} ${isFavorite(opportunity.id) ? styles.favBtnActive : ''}`}
+            onClick={() => toggleFavorite(opportunity.id, 'OPPORTUNITY')}
+            title={isFavorite(opportunity.id) ? 'Убрать из избранного' : 'В избранное'}
+          >
+            {isFavorite(opportunity.id) ? '★' : '☆'}
+          </button>
           <span className={styles.salary}>{formatSalary()}</span>
         </div>
       </div>
@@ -176,7 +184,14 @@ export default function OpportunityPage() {
         )}
       </div>
 
-      {/* тэги - позже добавим */}
+      {/* теги */}
+        {opportunity.tags && opportunity.tags.length > 0 && (
+          <div className={styles.tagsSection}>
+            {opportunity.tags.map((tag, i) => (
+              <span key={i} className={styles.tag}>{tag}</span>
+            ))}
+          </div>
+        )}
         
 
       <div className={styles.descriptionSection}>

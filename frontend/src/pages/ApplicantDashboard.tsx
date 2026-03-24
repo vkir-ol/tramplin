@@ -8,6 +8,12 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import type { ApplicantProfileResponse, UpdateApplicantRequest } from '../types';
 import styles from './Dashboard.module.css';
+import { useFavorites } from '../hooks/useFavorites';
+import { getOpportunityById } from '../api/opportunities';
+import type { OpportunityResponse } from '../types';
+import { useNavigate } from 'react-router-dom';
+
+
 
 export function ApplicantDashboard() {
   const { user } = useAuth();
@@ -19,6 +25,38 @@ export function ApplicantDashboard() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+
+  const navigate = useNavigate();
+  const { favorites, removeFavorite } = useFavorites();
+  const [favOpportunities, setFavOpportunities] = useState<OpportunityResponse[]>([]);
+  const [favsLoading, setFavsLoading] = useState(false);
+
+  // Загрузка данных избранных вакансий
+  useEffect(() => {
+    async function loadFavorites() {
+      const oppIds = favorites
+        .filter(f => f.type === 'OPPORTUNITY')
+        .map(f => f.id);
+      if (oppIds.length === 0) {
+        setFavOpportunities([]);
+        return;
+      }
+      setFavsLoading(true);
+      try {
+        const results = await Promise.all(
+          oppIds.map(id => getOpportunityById(id).catch(() => null))
+        );
+        setFavOpportunities(results.filter(Boolean) as OpportunityResponse[]);
+      } catch (err) {
+        console.error('Ошибка загрузки избранного:', err);
+      } finally {
+        setFavsLoading(false);
+      }
+    }
+    loadFavorites();
+  }, [favorites]);
+
 
   // Данные формы редактирования
   const [form, setForm] = useState<UpdateApplicantRequest>({
@@ -298,7 +336,32 @@ export function ApplicantDashboard() {
             <div className={styles.cardHeader}>
               <h2 className={styles.cardTitle}>⭐ Избранное</h2>
             </div>
-            <p className={styles.placeholder}>Сохранённые вакансии и мероприятия</p>
+            {favsLoading ? (
+              <p className={styles.placeholder}>Загрузка...</p>
+            ) : favOpportunities.length === 0 ? (
+              <p className={styles.placeholder}>Нет сохранённых вакансий</p>
+            ) : (
+              <div className={styles.favList}>
+                {favOpportunities.map(opp => (
+                  <div key={opp.id} className={styles.favItem}>
+                    <div
+                      className={styles.favInfo}
+                      onClick={() => navigate(`/opportunities/${opp.id}`)}
+                    >
+                      <span className={styles.favTitle}>{opp.title}</span>
+                      <span className={styles.favCompany}>{opp.companyName} · {opp.city}</span>
+                    </div>
+                    <button
+                      className={styles.favRemove}
+                      onClick={() => removeFavorite(opp.id)}
+                      title="Убрать из избранного"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           <section className={styles.card}>
