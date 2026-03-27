@@ -6,9 +6,10 @@ import type { OpportunityResponse } from '../types';
 import { OpportunityType, WorkFormat } from '../types';
 import styles from './OpportunityPage.module.css';
 import { useFavorites } from '../hooks/useFavorites';
+import { createApplication } from '../api/applications';
 /*
-    Публичная страница просмотра карточки возможности.
-    Доступна всем — авторизованным и гостям.
+  Публичная страница просмотра карточки возможности.
+  Доступна всем — авторизованным и гостям.
 */
 export default function OpportunityPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,30 @@ export default function OpportunityPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
+
+  // окно отклика
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [coverLetter, setCoverLetter] = useState('');
+  const [applying, setApplying] = useState(false);
+  const [applySuccess, setApplySuccess] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
+
+  async function handleApply() {
+    if (!id) return;
+    setApplying(true);
+    setApplyError(null);
+    try {
+      await createApplication({ opportunityId: id, coverLetter: coverLetter || undefined });
+      setApplySuccess(true);
+      setShowApplyModal(false);
+      setCoverLetter('');
+    } catch (err: any) {
+      const msg = err?.response?.data?.error?.message || 'Не удалось отправить отклик';
+      setApplyError(msg);
+    } finally {
+      setApplying(false);
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -72,13 +97,19 @@ export default function OpportunityPage() {
   }
 
   /* Человекопонятный формат работы */
-  function formatWorkFormat(format: WorkFormat): string {
-    const map: Record<WorkFormat, string> = {
-      [WorkFormat.OFFICE]: '🏢 Офис',
-      [WorkFormat.HYBRID]: '🔄 Гибрид',
-      [WorkFormat.REMOTE]: '🏠 Удалённо',
-    };
-    return map[format];
+  function WorkFormatBadge({ format }: { format: WorkFormat }) {
+    const map: Record<WorkFormat, { icon: string; label: string }> = {
+      [WorkFormat.OFFICE]: { icon: 'apartment', label: 'Офис' },
+      [WorkFormat.HYBRID]: { icon: 'sync_alt', label: 'Гибрид' },
+      [WorkFormat.REMOTE]: { icon: 'home', label: 'Удалённо' },
+    } ;
+    const { icon, label } = map[format];
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <span className="material-symbols-rounded">{icon}</span>
+        {label}
+      </span>
+    ) ;
   }
 
   /* Форматирование зарплаты */
@@ -109,7 +140,7 @@ export default function OpportunityPage() {
 
       {/* Кнопка "Назад" */}
       <button onClick={() => navigate(-1)} className={styles.backBtn}>
-        ← Назад
+        <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>chevron_left</span> Назад
       </button>
 
       <div className={styles.hero}>
@@ -140,7 +171,7 @@ export default function OpportunityPage() {
             onClick={() => toggleFavorite(opportunity.id, 'OPPORTUNITY')}
             title={isFavorite(opportunity.id) ? 'Убрать из избранного' : 'В избранное'}
           >
-            {isFavorite(opportunity.id) ? '★' : '☆'}
+            <span className="material-symbols-rounded" style={{ fontSize: '24px', fontVariationSettings: isFavorite(opportunity.id) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
           </button>
           <span className={styles.salary}>{formatSalary()}</span>
         </div>
@@ -149,7 +180,7 @@ export default function OpportunityPage() {
       <div className={styles.meta}>
         <div className={styles.metaItem}>
           <span className={styles.metaLabel}>Формат</span>
-          <span className={styles.metaValue}>{formatWorkFormat(opportunity.workFormat)}</span>
+          <WorkFormatBadge format={opportunity.workFormat} />
         </div>
 
         <div className={styles.metaItem}>
@@ -209,12 +240,12 @@ export default function OpportunityPage() {
           <div className={styles.contactsList}>
             {opportunity.contactEmail && (
               <a href={`mailto:${opportunity.contactEmail}`} className={styles.contactLink}>
-                ✉ {opportunity.contactEmail}
+                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>contact_mail</span> {opportunity.contactEmail}
               </a>
             )}
             {opportunity.contactPhone && (
               <a href={`tel:${opportunity.contactPhone}`} className={styles.contactLink}>
-                📞 {opportunity.contactPhone}
+                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>call</span> {opportunity.contactPhone}
               </a>
             )}
             {opportunity.contactUrl && (
@@ -224,7 +255,7 @@ export default function OpportunityPage() {
                 rel="noopener noreferrer"
                 className={styles.contactLink}
               >
-                🔗 {opportunity.contactUrl}
+                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>contacts</span> {opportunity.contactUrl}
               </a>
             )}
           </div>
@@ -234,15 +265,60 @@ export default function OpportunityPage() {
       {/* Кнопка отклика (только для авторизованного соискателя) */}
       <div className={styles.actions}>
         {user && user.role === 'APPLICANT' ? (
-          <button className={styles.btnPrimary}>
-            Откликнуться
-          </button>
+          applySuccess ? (
+            <div className={styles.successBanner}>Отклик отправлен!</div>
+          ) : (
+            <button className={styles.btnPrimary} onClick={() => setShowApplyModal(true)}>
+              Откликнуться
+            </button>
+          )
         ) : !user ? (
           <p className={styles.loginHint}>
             Чтобы откликнуться, <button onClick={() => navigate('/')} className={styles.linkBtn}>войдите</button> как соискатель.
           </p>
         ) : null}
       </div>
+      
+      {/* Модалка отклика */}
+      {showApplyModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowApplyModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h2 className={styles.modalTitle}>Откликнуться на вакансию</h2>
+            <p className={styles.modalSubtitle}>{opportunity.title} — {opportunity.companyName}</p>
+
+            {applyError && <div className={styles.errorBanner}>{applyError}</div>}
+
+            <label className={styles.modalLabel}>
+              Сопроводительное письмо (по желанию)
+            </label>
+            <textarea
+              className={styles.modalTextarea}
+              value={coverLetter}
+              onChange={(e) => setCoverLetter(e.target.value)}
+              placeholder="Расскажите, почему вы подходите на эту позицию, что ожидаете, какие цели преследуете..."
+              rows={5}
+              maxLength={5000}
+            />
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.btnSecondary}
+                onClick={() => setShowApplyModal(false)}
+              >
+                Отмена
+              </button>
+              <button
+                className={styles.btnPrimary}
+                onClick={handleApply}
+                disabled={applying}
+              >
+                {applying ? 'Отправка...' : 'Отправить отклик'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -22,10 +22,16 @@ const TYPE_LABELS: Record<string, string> = {
   EVENT: 'Мероприятие',
 };
 
+const FORMAT_ICONS: Record<string, string> = {
+  OFFICE: 'apartment',
+  HYBRID: 'sync_alt',
+  REMOTE: 'home',
+};
+
 const FORMAT_LABELS: Record<string, string> = {
-  OFFICE: '🏢 Офис',
-  HYBRID: '🔄 Гибрид',
-  REMOTE: '🏠 Удалённо',
+  OFFICE: 'Офис',
+  HYBRID: 'Гибрид',
+  REMOTE: 'Удалённо',
 };
 
 function formatSalary(min: number | null, max: number | null): string {
@@ -151,17 +157,17 @@ export function HomePage() {
 
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
-            Построй карьеру{' '}
-            <span className={styles.heroAccent}>с нуля</span>
+            Начни свою карьеру{' '}
+            <span className={styles.heroAccent}>здесь</span>
           </h1>
           <p className={styles.heroSubtitle}>
             Находи стажировки, вакансии и менторов в&nbsp;IT.
-            Формируй профессиональную сеть ещё до&nbsp;первого трудоустройства.
+            Начни свой профессиональный путь с нами!
           </p>
 
           {user && (
             <div className={styles.welcomeBadge}>
-              <span>👋</span>
+              <span><span className="material-symbols-rounded">waving_hand</span></span>
               <span>Добро пожаловать, <strong>{user.displayName || user.email}</strong>!</span>
             </div>
           )}
@@ -178,13 +184,13 @@ export function HomePage() {
               className={`${styles.toggleBtn} ${viewMode === 'map' ? styles.toggleBtnActive : ''}`}
               onClick={() => setViewMode('map')}
             >
-              🗺 Карта
+              <span className="material-symbols-rounded">map</span> Карта
             </button>
             <button
               className={`${styles.toggleBtn} ${viewMode === 'list' ? styles.toggleBtnActive : ''}`}
               onClick={() => setViewMode('list')}
             >
-              📋 Список
+              <span className="material-symbols-rounded">Assignment</span> Список
             </button>
           </div>
 
@@ -232,7 +238,7 @@ export function HomePage() {
 
             {hasActiveFilters && (
               <button className={styles.filterClear} onClick={clearFilters}>
-                ✕ Сбросить
+                 Сбросить
               </button>
             )}
 
@@ -301,7 +307,8 @@ export function HomePage() {
                           <span className={styles.listCardType}>
                             {TYPE_LABELS[opp.type] || opp.type}
                           </span>
-                          <span className={styles.listCardFormat}>
+                          <span className={styles.listCardFormat} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>{FORMAT_ICONS[opp.workFormat] || 'work'}</span>
                             {FORMAT_LABELS[opp.workFormat] || opp.workFormat}
                           </span>
                         </div>
@@ -331,7 +338,10 @@ export function HomePage() {
 
                         {/* Город и зарплата */}
                         <div className={styles.listCardBottom}>
-                          <span className={styles.listCardCity}>📍 {opp.city}</span>
+                          <span className={styles.listCardCity} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                            <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>location_on</span>
+                            {opp.city}
+                          </span>
                           <span className={styles.listCardSalary}>
                             {formatSalary(opp.salaryMin, opp.salaryMax)}
                           </span>
@@ -354,7 +364,7 @@ export function HomePage() {
                         disabled={filters.page === 0}
                         onClick={() => handlePageChange((filters.page || 0) - 1)}
                       >
-                        ← Назад
+                        <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>chevron_left</span> Назад
                       </button>
                       <span className={styles.pageInfo}>
                         Страница {(filters.page || 0) + 1} из {totalPages}
@@ -364,7 +374,7 @@ export function HomePage() {
                         disabled={(filters.page || 0) >= totalPages - 1}
                         onClick={() => handlePageChange((filters.page || 0) + 1)}
                       >
-                        Вперёд →
+                        Вперёд <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>chevron_right</span>
                       </button>
                     </div>
                   )}

@@ -12,6 +12,8 @@ import { useFavorites } from '../hooks/useFavorites';
 import { getOpportunityById } from '../api/opportunities';
 import type { OpportunityResponse } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { getMyApplications } from '../api/applications';
+import type { ApplicationResponse } from '../types';
 
 
 
@@ -31,6 +33,8 @@ export function ApplicantDashboard() {
   const { favorites, removeFavorite } = useFavorites();
   const [favOpportunities, setFavOpportunities] = useState<OpportunityResponse[]>([]);
   const [favsLoading, setFavsLoading] = useState(false);
+  const [applications, setApplications] = useState<ApplicationResponse[]>([]);
+  const [appsLoading, setAppsLoading] = useState(false);
 
   // Загрузка данных избранных вакансий
   useEffect(() => {
@@ -57,6 +61,21 @@ export function ApplicantDashboard() {
     loadFavorites();
   }, [favorites]);
 
+
+  useEffect(() => {
+    async function loadApplications() {
+      setAppsLoading(true);
+      try {
+        const data = await getMyApplications(0, 50);
+        setApplications(data.content || []);
+      } catch (err) {
+        console.error('Ошибка загрузки откликов:', err);
+      } finally {
+        setAppsLoading(false);
+      }
+    }
+    loadApplications();
+  }, []);
 
   // Данные формы редактирования
   const [form, setForm] = useState<UpdateApplicantRequest>({
@@ -173,6 +192,25 @@ export function ApplicantDashboard() {
   const fullName = profile
     ? [profile.lastName, profile.firstName, profile.middleName].filter(Boolean).join(' ')
     : user?.displayName || '';
+
+
+  const statusLabels: Record<string, string> = {
+    PENDING: 'Ожидание',
+    REVIEWED: 'Просмотрен',
+    ACCEPTED: 'Принят',
+    REJECTED: 'Отклонён',
+    RESERVED: 'В резерве',
+  };
+
+  const statusColors: Record<string, string> = {
+    PENDING: '#d97706',
+    REVIEWED: '#2563eb',
+    ACCEPTED: '#059669',
+    REJECTED: '#dc2626',
+    RESERVED: '#6b7280',
+  };
+
+
 
   return (
     <main className={styles.dashboard}>
@@ -323,18 +361,51 @@ export function ApplicantDashboard() {
           )}
         </section>
 
-        {/* Заглушки для будущих секций, ПОКА НЕ СДЕЛАНЫ */}
         <div className={styles.grid}>
           <section className={styles.card}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>📋 Мои отклики</h2>
+              <h2 className={styles.cardTitle}><span className="material-symbols-rounded">patient_list</span> Мои отклики</h2>
             </div>
-            <p className={styles.placeholder}>История откликов и их статусы появятся здесь</p>
+            {appsLoading ? (
+              <p className={styles.placeholder}>Загрузка...</p>
+            ) : applications.length === 0 ? (
+              <p className={styles.placeholder}>У вас пока нет откликов</p>
+            ) : (
+              <div className={styles.appsTable}>
+                {applications.map(app => (
+                  <div key={app.id} className={styles.appRow}>
+                    <div className={styles.appInfo}>
+                      <span
+                        className={styles.appTitle}
+                        onClick={() => navigate(`/opportunities/${app.opportunityId}`)}
+                      >
+                        {app.opportunityTitle}
+                      </span>
+                      <span className={styles.appCompany}>{app.companyName}</span>
+                    </div>
+                    <div className={styles.appMeta}>
+                      <span
+                        className={styles.appStatus}
+                        style={{
+                          color: statusColors[app.status] || '#6b7280',
+                          borderColor: statusColors[app.status] || '#6b7280',
+                        }}
+                      >
+                        {statusLabels[app.status] || app.status}
+                      </span>
+                      <span className={styles.appDate}>
+                        {new Date(app.createdAt).toLocaleDateString('ru-RU')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           <section className={styles.card}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>⭐ Избранное</h2>
+              <h2 className={styles.cardTitle}><span className="material-symbols-rounded">bookmarks</span> Избранное</h2>
             </div>
             {favsLoading ? (
               <p className={styles.placeholder}>Загрузка...</p>
@@ -356,7 +427,7 @@ export function ApplicantDashboard() {
                       onClick={() => removeFavorite(opp.id)}
                       title="Убрать из избранного"
                     >
-                      ✕
+                      <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>close</span>
                     </button>
                   </div>
                 ))}
@@ -366,7 +437,7 @@ export function ApplicantDashboard() {
 
           <section className={styles.card}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>👥 Контакты</h2>
+              <h2 className={styles.cardTitle}><span className="material-symbols-rounded">group</span> Контакты</h2>
             </div>
             <p className={styles.placeholder}>Профессиональные контакты и нетворкинг</p>
           </section>

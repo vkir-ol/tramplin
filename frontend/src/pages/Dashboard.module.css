@@ -73,6 +73,9 @@
     font-weight: 600;
     color: var(--color-text-primary);
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 /* Сетка grid карточек */
@@ -552,4 +555,134 @@
 .favRemove:hover {
     color: #dc2626;
     background: #fef2f2;
+}
+
+
+
+/* Отклики */
+.appsTable {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.appRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--bg-secondary, #f9fafb);
+    gap: 12px;
+}
+
+.appRow:hover {
+    background: var(--bg-tertiary, #f3f4f6);
+}
+
+.appInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.appTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a1a);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.appTitle:hover {
+    color: var(--accent, #E8622C);
+}
+
+.appCompany {
+    font-size: 12px;
+    color: var(--text-secondary, #6b7280);
+}
+
+.appMeta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.appStatus {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+.appDate {
+    font-size: 12px;
+    color: var(--text-secondary, #6b7280);
+    white-space: nowrap;
+}
+
+
+/* Отклики работодателя */
+.appRowEmployer {
+    padding: 14px;
+    border-radius: 8px;
+    background: var(--bg-secondary, #f9fafb);
+    margin-bottom: 8px;
+}
+
+.appRowEmployer:hover {
+    background: var(--bg-tertiary, #f3f4f6);
+}
+
+.appOppLink {
+    font-size: 12px;
+    color: var(--accent, #E8622C);
+    cursor: pointer;
+}
+
+.appOppLink:hover {
+    text-decoration: underline;
+}
+
+.appCoverLetter {
+    font-size: 13px;
+    color: var(--text-secondary, #6b7280);
+    margin: 8px 0;
+    padding: 8px 12px;
+    background: var(--bg-primary, #fff);
+    border-radius: 6px;
+    border-left: 3px solid var(--accent, #E8622C);
+}
+
+.appActions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    gap: 12px;
+}
+
+.statusSelect {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border, #d1d5db);
+    font-size: 13px;
+    cursor: pointer;
+    background: var(--bg-primary, #fff);
+}
+
+.filterSelect {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border, #d1d5db);
+    font-size: 13px;
+    background: var(--bg-primary, #fff);
 }

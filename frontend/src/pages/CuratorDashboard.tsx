@@ -22,28 +22,28 @@ export function CuratorDashboard() {
         <div className={styles.grid}>
           <section className={styles.card}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>✅ Верификация компаний</h2>
+              <h2 className={styles.cardTitle}><span className="material-symbols-rounded">verified</span> Верификация компаний</h2>
             </div>
             <p className={styles.placeholder}>Заявки на верификацию от работодателей</p>
           </section>
 
           <section className={styles.card}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>🛡️ Модерация</h2>
+              <h2 className={styles.cardTitle}><span className="material-symbols-rounded">shield</span> Модерация</h2>
             </div>
             <p className={styles.placeholder}>Очередь модерации карточек и профилей</p>
           </section>
 
           <section className={styles.card}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>🏷️ Управление тегами</h2>
+              <h2 className={styles.cardTitle}><span className="material-symbols-rounded">sell</span> Управление тегами</h2>
             </div>
             <p className={styles.placeholder}>Справочник тегов, синонимы, иерархия</p>
           </section>
 
           <section className={styles.card}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>📜 Журнал действий</h2>
+              <h2 className={styles.cardTitle}><span className="material-symbols-rounded">history</span> Журнал действий</h2>
             </div>
             <p className={styles.placeholder}>Audit log: кто, что, когда изменил</p>
           </section>
@@ -52,7 +52,7 @@ export function CuratorDashboard() {
           {isAdmin && (
             <section className={styles.card}>
               <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}>👤 Управление кураторами</h2>
+                <h2 className={styles.cardTitle}><span className="material-symbols-rounded">admin_panel_settings</span> Управление кураторами</h2>
               </div>
               <p className={styles.placeholder}>Создание учётных записей кураторов</p>
             </section>

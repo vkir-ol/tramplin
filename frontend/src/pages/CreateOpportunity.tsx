@@ -9,9 +9,8 @@ import { getTags } from '../api/tags';
 import type { Tag } from '../types';
 
 /*
-    Страница создания карточки возможности
-    Доступна только верифицированному работодателю
-    После успешного создания — редирект в ЛК работодателя
+  Страница создания карточки возможности
+  Доступна только верифицированному работодателю
 */
 
 
@@ -157,7 +156,6 @@ export default function CreateOpportunity() {
     await createOpportunity(payload);
     navigate('/company'); // Возврат в ЛК работодателя
     } catch (err: any) {
-      // Пытаемся достать сообщение от backend
       const message =
         err?.response?.data?.error?.message || 'Не удалось создать карточку. Попробуйте позже.';
       setError(message);
@@ -268,7 +266,6 @@ export default function CreateOpportunity() {
           </div>
         </section>
 
-        {/* ЛОКАЦИЯ */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Локация</h2>
 
@@ -302,7 +299,7 @@ export default function CreateOpportunity() {
           </div>
         </section>
 
-        {/* ЗАРПЛАТА */}
+        {/* Зарплата */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Зарплата</h2>
           <p className={styles.hint}>Необязательно. Если не указать — на карточке будет «По договорённости».</p>
@@ -336,7 +333,7 @@ export default function CreateOpportunity() {
           </div>
         </section>
 
-        {/* ДАТЫ */}
+        {/* Даты */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Даты</h2>
 
@@ -398,7 +395,7 @@ export default function CreateOpportunity() {
           )}
         </section>
 
-        {/* КОНТАКТЫ */}
+        {/* Контакты */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Контактная информация</h2>
           <p className={styles.hint}>Email обязателен. Остальные контакты — по желанию.</p>
@@ -442,7 +439,7 @@ export default function CreateOpportunity() {
           </div>
         </section>
 
-        {/* КНОПКИ */}
+        {/* Кнопки */}
         <div className={styles.actions}>
           <button
             type="button"

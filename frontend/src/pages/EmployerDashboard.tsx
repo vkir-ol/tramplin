@@ -11,6 +11,9 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import type { CompanyProfileResponse, UpdateCompanyRequest, OpportunityResponse } from '../types';
 import styles from './Dashboard.module.css';
+import { getIncomingApplications, updateApplicationStatus } from '../api/applications';
+import type { ApplicationResponse, } from '../types';
+import { ApplicationStatus } from '../types';
 
 const verificationLabels: Record<string, string> = {
   UNVERIFIED: 'Не подтверждена',
@@ -48,9 +51,9 @@ const statusColors: Record<string, string> = {
 };
 
 const workFormatLabels: Record<string, string> = {
-  OFFICE: '🏢 Офис',
-  HYBRID: '🔄 Гибрид',
-  REMOTE: '🏠 Удалённо',
+  OFFICE: 'Офис',
+  HYBRID: 'Гибрид',
+  REMOTE: 'Удалённо',
 };
 
 // Вспомогательная функция — текст баннера верификации
@@ -58,19 +61,19 @@ function getVerificationBanner(status: string): { icon: string; title: string; t
   switch (status) {
     case 'REJECTED':
       return {
-        icon: '❌',
+        icon: 'cancel',
         title: 'Верификация отклонена',
         text: 'Проверьте данные компании и повторите попытку. Вы не можете создавать вакансии.',
       };
     case 'PENDING':
       return {
-        icon: '⏳',
+        icon: 'hourglass_top',
         title: 'Компания на проверке',
         text: 'Ваша компания проходит верификацию. До завершения проверки вы не сможете создавать вакансии.',
       };
     case 'UNVERIFIED':
       return {
-        icon: '⏳',
+        icon: 'verified_user',
         title: 'Требуется верификация',
         text: 'Заполните профиль компании и ИНН для прохождения верификации.',
       };
@@ -94,6 +97,12 @@ export function EmployerDashboard() {
   const [opportunities, setOpportunities] = useState<OpportunityResponse[]>([]);
   const [oppsLoading, setOppsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Отклики
+  const [apps, setApps] = useState<ApplicationResponse[]>([]);
+  const [appsLoading, setAppsLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<ApplicationStatus | undefined>(undefined);
+  const [updatingAppId, setUpdatingAppId] = useState<string | null>(null);
 
   const [form, setForm] = useState<UpdateCompanyRequest>({
     companyName: '',
@@ -225,6 +234,36 @@ export function EmployerDashboard() {
     setError(null);
   }
 
+
+  useEffect(() => {
+    loadApplications();
+  }, [statusFilter]);
+
+  async function loadApplications() {
+    setAppsLoading(true);
+    try {
+      const data = await getIncomingApplications(0, 50, statusFilter);
+      setApps(data.content || []);
+    } catch (err) {
+      console.error('Ошибка загрузки откликов:', err);
+    } finally {
+      setAppsLoading(false);
+    }
+  }
+
+  async function handleStatusChange(appId: string, newStatus: ApplicationStatus) {
+    setUpdatingAppId(appId);
+    try {
+      const updated = await updateApplicationStatus(appId, { status: newStatus });
+      setApps(prev => prev.map(a => a.id === appId ? updated : a));
+    } catch (err) {
+      console.error('Ошибка смены статуса:', err);
+    } finally {
+      setUpdatingAppId(null);
+    }
+  }
+
+
   if (isLoading) {
     return (
       <main className={styles.dashboard}>
@@ -234,6 +273,8 @@ export function EmployerDashboard() {
       </main>
     );
   }
+
+  
 
   const vStatus = profile?.verificationStatus || 'UNVERIFIED';
   const isNotVerified = vStatus !== 'VERIFIED';
@@ -254,7 +295,7 @@ export function EmployerDashboard() {
 
         {banner && (
           <div className={styles.warningBanner}>
-            <span>{banner.icon}</span>
+            <span className="material-symbols-rounded">{banner.icon}</span>
             <div>
               <strong>{banner.title}</strong>
               <p>{banner.text}</p>
@@ -443,7 +484,7 @@ export function EmployerDashboard() {
         {/* Мои возможности */}
         <section className={`${styles.card} ${styles.cardFull}`}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>📝 Мои возможности</h2>
+            <h2 className={styles.cardTitle}><span className="material-symbols-rounded">list_alt</span> Мои возможности</h2>
             {!isNotVerified && (
               <Button size="sm" onClick={() => navigate('/company/opportunities/new')}>
                 + Создать
@@ -487,8 +528,16 @@ export function EmployerDashboard() {
                       {opp.title}
                     </h3>
                     <div className={styles.oppMeta}>
-                      <span>{workFormatLabels[opp.workFormat] || opp.workFormat}</span>
-                      <span>📍 {opp.city}</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>
+                          {opp.workFormat === 'OFFICE' ? 'apartment' : opp.workFormat === 'HYBRID' ? 'sync_alt' : 'home'}
+                        </span>
+                        {workFormatLabels[opp.workFormat] || opp.workFormat}
+                      </span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>location_on</span>
+                        {opp.city}
+                      </span>
                       <span>{formatSalary(opp.salaryMin, opp.salaryMax)}</span>
                     </div>
                   </div>
@@ -498,7 +547,7 @@ export function EmployerDashboard() {
                       onClick={() => navigate(`/opportunities/${opp.id}`)}
                       title="Просмотр"
                     >
-                      👁
+                      <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>visibility</span>
                     </button>
                     <button
                       className={styles.oppBtnDelete}
@@ -506,7 +555,10 @@ export function EmployerDashboard() {
                       disabled={deletingId === opp.id}
                       title="Удалить"
                     >
-                      {deletingId === opp.id ? '⏳' : '🗑'}
+                      {deletingId === opp.id
+                        ? <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>hourglass_top</span>
+                        : <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
+                      }
                     </button>
                   </div>
                 </div>
@@ -515,12 +567,69 @@ export function EmployerDashboard() {
           )}
         </section>
 
-        {/* Отклики(еще не готово)*/}
         <section className={`${styles.card} ${styles.cardFull}`}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>👤 Отклики</h2>
+            <h2 className={styles.cardTitle}><span className="material-symbols-rounded">group</span> Отклики</h2>
+            <select
+              className={styles.filterSelect}
+              value={statusFilter || ''}
+              onChange={(e) => setStatusFilter(e.target.value ? e.target.value as ApplicationStatus : undefined)}
+            >
+              <option value="">Все статусы</option>
+              <option value="PENDING">Ожидание</option>
+              <option value="REVIEWED">Просмотрен</option>
+              <option value="ACCEPTED">Принят</option>
+              <option value="REJECTED">Отклонён</option>
+              <option value="RESERVED">В резерве</option>
+            </select>
           </div>
-          <p className={styles.placeholder}>Список откликнувшихся соискателей — в разработке</p>
+
+          {appsLoading ? (
+            <p className={styles.placeholder}>Загрузка откликов...</p>
+          ) : apps.length === 0 ? (
+            <p className={styles.placeholder}>
+              {statusFilter ? 'Нет откликов с таким статусом' : 'Пока нет откликов на ваши вакансии'}
+            </p>
+          ) : (
+            <div className={styles.appsTable}>
+              {apps.map(app => (
+                <div key={app.id} className={styles.appRowEmployer}>
+                  <div className={styles.appInfo}>
+                    <span className={styles.appTitle}>
+                      {app.applicantFirstName} {app.applicantLastName}
+                    </span>
+                    <span className={styles.appCompany}>{app.applicantEmail}</span>
+                    <span
+                      className={styles.appOppLink}
+                      onClick={() => navigate(`/opportunities/${app.opportunityId}`)}
+                    >
+                      {app.opportunityTitle}
+                    </span>
+                  </div>
+                  {app.coverLetter && (
+                    <p className={styles.appCoverLetter}>{app.coverLetter}</p>
+                  )}
+                  <div className={styles.appActions}>
+                    <span className={styles.appDate}>
+                      {new Date(app.createdAt).toLocaleDateString('ru-RU')}
+                    </span>
+                    <select
+                      className={styles.statusSelect}
+                      value={app.status}
+                      onChange={(e) => handleStatusChange(app.id, e.target.value as ApplicationStatus)}
+                      disabled={updatingAppId === app.id}
+                    >
+                      <option value="PENDING">Ожидание</option>
+                      <option value="REVIEWED">Просмотрен</option>
+                      <option value="ACCEPTED">Принят</option>
+                      <option value="REJECTED">Отклонён</option>
+                      <option value="RESERVED">В резерве</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </main>

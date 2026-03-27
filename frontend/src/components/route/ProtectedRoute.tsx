@@ -63,6 +63,5 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     );
   }
 
-  // Всё ок — рендерим дочерний компонент (страницу ЛК)
   return <>{children}</>;
 }

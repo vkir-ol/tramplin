@@ -50,7 +50,7 @@ export function Header() {
         <div className={styles.container}>
           {/* Логотип — ведёт на главную */}
           <Link to="/" className={styles.logo}>
-            <span className={styles.logoIcon}><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#F19E39"><path d="m140-100-60-60 300-300 160 160 284-320 56 56-340 384-160-160-240 240Zm0-240-60-60 300-300 160 160 284-320 56 56-340 384-160-160-240 240Z"/></svg></span>
+            <span className="material-symbols-rounded" style={{ fontSize: '32px', fill: 'orange' }}>footprint</span>
             <span className={styles.logoText}>Трамплин</span>
           </Link>
 

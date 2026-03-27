@@ -42,8 +42,8 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       setLocalError('Заполните все поля');
       return;
     }
-    if (formData.password.length < 6) {
-      setLocalError('Пароль должен быть не менее 6 символов');
+    if (formData.password.length < 8) {
+      setLocalError('Пароль должен быть не менее 8 символов');
       return;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -61,7 +61,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       });
       onSuccess();
     } catch {
-      // Ошибка уже обработана в useAuth
+      
     } finally {
       setIsLoading(false);
     }
@@ -73,14 +73,13 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
     <form onSubmit={handleSubmit} className={styles.form}>
       {/* Выбор роли */}
       <div className={styles.roleSection}>
-        <span className={styles.roleLabel}>Я —</span>
         <div className={styles.roleToggle}>
           <button
             type="button"
             className={`${styles.roleBtn} ${formData.role === 'APPLICANT' ? styles.roleBtnActive : ''}`}
             onClick={() => handleChange('role', 'APPLICANT')}
           >
-            <span className={styles.roleIcon}>🎓</span>
+            <span className={styles.roleIcon}><span className="material-symbols-rounded">person_search</span></span>
             Соискатель
           </button>
           <button
@@ -88,7 +87,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
             className={`${styles.roleBtn} ${formData.role === 'EMPLOYER' ? styles.roleBtnActive : ''}`}
             onClick={() => handleChange('role', 'EMPLOYER')}
           >
-            <span className={styles.roleIcon}>🏢</span>
+            <span className={styles.roleIcon}><span className="material-symbols-rounded">work</span></span>
             Работодатель
           </button>
         </div>
@@ -115,7 +114,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       <Input
         label="Пароль"
         type="password"
-        placeholder="Минимум 6 символов"
+        placeholder="Минимум 8 символов"
         value={formData.password}
         onChange={(e) => handleChange('password', e.target.value)}
         autoComplete="new-password"

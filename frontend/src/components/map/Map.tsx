@@ -25,10 +25,16 @@ const TYPE_LABELS: Record<string, string> = {
   EVENT: 'Мероприятие',
 };
 
+const FORMAT_ICONS: Record<string, string> = {
+  OFFICE: 'apartment',
+  HYBRID: 'sync_alt',
+  REMOTE: 'home',
+};
+
 const FORMAT_LABELS: Record<string, string> = {
-  OFFICE: '🏢 Офис',
-  HYBRID: '🔄 Гибрид',
-  REMOTE: '🏠 Удалённо',
+  OFFICE: 'Офис',
+  HYBRID: 'Гибрид',
+  REMOTE: 'Удалённо',
 };
 
 function formatSalary(min: number | null, max: number | null): string {
@@ -54,8 +60,8 @@ function buildBalloonContent(opp: OpportunityMapCard): string {
       </div>
       <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:6px;line-height:1.3;">${opp.title}</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
-        <span style="font-size:12px;color:#6b6b6b;">${FORMAT_LABELS[opp.workFormat] || opp.workFormat}</span>
-        <span style="font-size:12px;color:#6b6b6b;">📍 ${opp.city}</span>
+        <span style="font-size:12px;color:#6b6b6b;display:inline-flex;align-items:center;gap:3px;"><span style="font-family:'Material Symbols Rounded';font-size:16px;font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 20;">${FORMAT_ICONS[opp.workFormat] || 'work'}</span> ${FORMAT_LABELS[opp.workFormat] || opp.workFormat}</span>
+        <span style="font-size:12px;color:#6b6b6b;display:inline-flex;align-items:center;gap:3px;"><span style="font-family:'Material Symbols Rounded';font-size:16px;font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 20;">location_on</span> ${opp.city}</span>
       </div>
       ${opp.tags && opp.tags.length > 0 ? `
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">

@@ -45,7 +45,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       });
       onSuccess();
     } catch {
-      // Ошибка уже обработана в useAuth
+      
     } finally {
       setIsLoading(false);
     }

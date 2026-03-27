@@ -315,3 +315,78 @@ export interface OpportunityFilters {
   size?: number;
   search?: string;  // поиск по названию или описанию
 }
+
+
+// Отклики
+export enum ApplicationStatus {
+  PENDING = 'PENDING',
+  REVIEWED = 'REVIEWED',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+  RESERVED = 'RESERVED',
+}
+
+
+export interface ApplicationResponse {
+  id: string;
+  status: ApplicationStatus;
+  coverLetter: string | null;
+  createdAt: string;
+  updatedAt: string;
+
+  // для соискателя, что за вакансия
+  opportunityId: string;
+  opportunityTitle: string;
+  companyName: string;
+
+  // для работодателя, кто откликнулся
+  applicantId: string;
+  applicantFirstName: string;
+  applicantLastName:string;
+  applicantEmail: string;
+}
+
+
+export interface CreateApplicationRequest {
+  opportunityId: string;
+  coverLetter?: string;
+}
+
+export interface UpdateApplicationStatusRequest {
+  status: ApplicationStatus;
+}
+
+
+//Контакты
+export enum ContactRequestStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+}
+
+
+export interface ContactRequestResponse {
+  id: string;
+  senderId: string;
+  senderDisplayName: string;
+  senderEmail: string;
+  status: ContactRequestStatus;
+  createdAt: string;
+}
+
+export interface ContactResponse {
+  contactRequestId: string;
+  userId: string;
+  displayName: string;
+  email: string;
+  connectedAt: string;
+}
+
+
+export interface FavoriteResponse {
+  id: string;
+  opportunityId: string;
+  opportunityTitle: string;
+  companyName: string;
+  createdAt: string;
+}
