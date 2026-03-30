@@ -8,6 +8,12 @@ import { EmployerDashboard } from './pages/EmployerDashboard';
 import { CuratorDashboard } from './pages/CuratorDashboard';
 import CreateOpportunity from './pages/CreateOpportunity';
 import OpportunityPage from './pages/OpportunityPage';
+import EditOpportunity from './pages/EditOpportunity';
+import CompanyProfile from './pages/CompanyProfile';
+import ApplicantProfile from './pages/ApplicantProfile';
+import NotFoundPage from './pages/NotFoundPage';
+import { Footer } from './components/layout/Footer';
+import { ToastProvider } from './components/ui/Toast';
 
 /*
 Корневой компонент приложения
@@ -30,6 +36,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ToastProvider>
         <Header />
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -71,10 +78,23 @@ function App() {
             }
           />
 
-          <Route path="/opportunities/:id" element={<OpportunityPage />} />
+          <Route
+            path="/company/opportunities/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={['EMPLOYER']}>
+                <EditOpportunity />
+              </ProtectedRoute>
+            }
+          />
 
+          <Route path="/opportunities/:id" element={<OpportunityPage />} />
+          <Route path="/company/:id" element={<CompanyProfile />} />
+          <Route path="/applicant/:id" element={<ApplicantProfile />} />
+          <Route path="*" element={<NotFoundPage />} />
 
         </Routes>
+        <Footer />
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   );

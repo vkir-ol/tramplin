@@ -97,11 +97,14 @@ export async function getMyOpportunities(): Promise<OpportunityResponse[]> {
 }
 
 
-/*
-export async function closeOpportunity(id: string): Promise<OpportunityResponse> {
+
+export async function changeOpportunityStatus(
+    id: string, status: 'ACTIVE' | 'CLOSED' | 'DRAFT'
+): Promise<OpportunityResponse> {
     const response = await client.patch<ApiResponse<OpportunityResponse>>(
-        `/opportunities/${id}/close`
+        `/opportunities/${id}/status`,
+        null,
+        { params: { status } }
     );
     return response.data.data!;
 }
-*/

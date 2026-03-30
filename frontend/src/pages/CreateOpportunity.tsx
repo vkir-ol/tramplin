@@ -5,8 +5,9 @@ import type { OpportunityRequest, } from '../types';
 import { OpportunityType, WorkFormat } from '../types';
 import styles from './CreateOpportunity.module.css';
 import { getCompanyProfile } from '../api/employer';
-import { getTags } from '../api/tags';
+import { getTags, offerTag } from '../api/tags';
 import type { Tag } from '../types';
+import { TagCategory } from '../types';
 
 /*
   Страница создания карточки возможности
@@ -45,6 +46,29 @@ export default function CreateOpportunity() {
   // Теги
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
+  // Предложение нового тега
+  const [showOfferTag, setShowOfferTag] = useState(false);
+  const [offerTagName, setOfferTagName] = useState('');
+  const [offerTagCategory, setOfferTagCategory] = useState<TagCategory>(TagCategory.TOOL);
+  const [offerTagLoading, setOfferTagLoading] = useState(false);
+  const [offerTagMsg, setOfferTagMsg] = useState<string | null>(null);
+
+  async function handleOfferTag() {
+    if (!offerTagName.trim()) return;
+    setOfferTagLoading(true);
+    setOfferTagMsg(null);
+    try {
+      await offerTag({ name: offerTagName.trim(), category: offerTagCategory });
+      setOfferTagMsg('Тег предложен! После одобрения куратором он появится в списке.');
+      setOfferTagName('');
+      setShowOfferTag(false);
+    } catch {
+      setOfferTagMsg('Ошибка при предложении тега');
+    } finally {
+      setOfferTagLoading(false);
+    }
+  }
 
   useEffect(() => {
     async function loadTags() {
@@ -392,6 +416,45 @@ export default function CreateOpportunity() {
 
           {selectedTagIds.length > 0 && (
             <p className={styles.hint}>Выбрано: {selectedTagIds.length}</p>
+          )}
+
+          {offerTagMsg && <p className={styles.hint} style={{ color: 'var(--color-accent)' }}>{offerTagMsg}</p>}
+
+          {!showOfferTag ? (
+            <button type="button" onClick={() => setShowOfferTag(true)}
+              style={{
+                background: 'none', border: 'none', color: 'var(--color-accent, #E8622C)',
+                fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', padding: 0,
+              }}>
+              + Предложить новый тег
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <label className={styles.field} style={{ flex: 1, minWidth: '150px' }}>
+                <span className={styles.label}>Название тега</span>
+                <input type="text" value={offerTagName} onChange={e => setOfferTagName(e.target.value)}
+                  className={styles.input} placeholder="Например: Kotlin" maxLength={50} />
+              </label>
+              <label className={styles.field} style={{ minWidth: '150px' }}>
+                <span className={styles.label}>Категория</span>
+                <select value={offerTagCategory} onChange={e => setOfferTagCategory(e.target.value as TagCategory)}
+                  className={styles.select}>
+                  <option value={TagCategory.LANGUAGE}>Язык</option>
+                  <option value={TagCategory.FRAMEWORK}>Фреймворк</option>
+                  <option value={TagCategory.TOOL}>Инструмент</option>
+                  <option value={TagCategory.DATABASE}>База данных</option>
+                  <option value={TagCategory.SPECIALIZATION}>Специализация</option>
+                </select>
+              </label>
+              <button type="button" onClick={handleOfferTag} disabled={offerTagLoading}
+                className={styles.btnPrimary} style={{ padding: '0.625rem 1.25rem', fontSize: '0.85rem' }}>
+                {offerTagLoading ? '...' : 'Предложить'}
+              </button>
+              <button type="button" onClick={() => setShowOfferTag(false)}
+                className={styles.btnSecondary} style={{ padding: '0.625rem 1rem', fontSize: '0.85rem' }}>
+                Отмена
+              </button>
+            </div>
           )}
         </section>
 

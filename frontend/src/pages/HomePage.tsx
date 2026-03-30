@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getOpportunities } from '../api/opportunities';
@@ -8,7 +8,8 @@ import { OpportunityType, WorkFormat } from '../types';
 import styles from './HomePage.module.css';
 import { getTags } from '../api/tags';
 import type { Tag } from '../types';
-
+import { getPlatformStats, type PlatformStats } from '../api/stats';
+import { SkeletonCard } from '../components/ui/Skeleton';
 
 /*
   Два режима отображения: карта с маркерами и список
@@ -54,6 +55,40 @@ function formatDate(iso: string | null): string {
 
 type ViewMode = 'map' | 'list';
 
+
+
+
+
+
+function AnimatedNumber({ value }: { value: number }) {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    let frame: number;
+    const duration = 1500;
+    const start = performance.now();
+
+    function animate(now: number) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 4);
+      setCurrent(Math.floor(eased * value));
+      if (progress < 1) {
+        frame = requestAnimationFrame(animate);
+      }
+    }
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [value]);
+
+  return <>{current.toLocaleString('ru-RU')}</>;
+}
+
+
+
+
+
+
 export function HomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -78,6 +113,19 @@ export function HomePage() {
   // Теги для фильтра
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [tagsLoading, setTagsLoading] = useState(false);
+
+
+  // Статистика платформы
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+
+  useEffect(() => {
+    getPlatformStats()
+      .then(setStats)
+      .catch(() => {
+        // Бэкенд может не иметь /stats/public — показываем нули
+        setStats({ companiesCount: 0, opportunitiesCount: 0, internshipsCount: 0, applicantsCount: 0 });
+      });
+  }, []);
 
   // Загрузка тегов при монтировании
   useEffect(() => {
@@ -147,7 +195,26 @@ export function HomePage() {
     setFilters({ page: 0, size: 20 });
   }
 
-  const hasActiveFilters = !!(filters.type || filters.workFormat || filters.city || filters.salaryMin || (filters.tagIds && filters.tagIds.length > 0));
+  const hasActiveFilters = !!(filters.type || filters.workFormat || filters.city || filters.salaryMin || filters.search || (filters.tagIds && filters.tagIds.length > 0));
+
+
+
+
+
+  const statsRef = useRef<HTMLDivElement>(null);
+  const [statsVisible, setStatsVisible] = useState(false);
+
+  useEffect(() => {
+    if (!statsRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setStatsVisible(true); },
+      { threshold: 0.3 }
+    );
+    observer.observe(statsRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+
 
   return (
     <main className={styles.main}>
@@ -165,6 +232,21 @@ export function HomePage() {
             Начни свой профессиональный путь с нами!
           </p>
 
+          {/* Hero search bar */}
+          <div className={styles.heroSearch}>
+            <span className="material-symbols-rounded" style={{ fontSize: '22px', color: 'var(--color-text-secondary)' }}>search</span>
+            <input
+              type="text"
+              className={styles.heroSearchInput}
+              placeholder="Найти стажировку, вакансию, ментора..."
+              value={filters.search || ''}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+              onFocus={() => {
+                document.getElementById('controls-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            />
+          </div>
+
           {user && (
             <div className={styles.welcomeBadge}>
               <span><span className="material-symbols-rounded">waving_hand</span></span>
@@ -174,8 +256,39 @@ export function HomePage() {
         </div>
       </section>
 
+       
+
+  
+      {/* Статистика — рендерим только если данные загрузились */}
+      {stats && (
+      <section className={styles.statsSection} ref={statsRef}>
+        {[
+          { value: stats.companiesCount ?? 0, label: 'Компаний', icon: 'apartment' },
+          { value: stats.opportunitiesCount ?? 0, label: 'Вакансий', icon: 'work' },
+          { value: stats.internshipsCount ?? 0, label: 'Стажировок', icon: 'school' },
+          { value: stats.applicantsCount ?? 0, label: 'Соискателей', icon: 'group' },
+        ].map((stat, i) => (
+          <div
+            key={i}
+            className={`${styles.statCard} ${statsVisible ? styles.statCardVisible : ''}`}
+            style={{ transitionDelay: `${i * 0.1}s` }}
+          >
+            <span className={`material-symbols-rounded ${styles.statIcon}`}>{stat.icon}</span>
+            <span className={styles.statValue}>
+              {statsVisible ? <AnimatedNumber value={stat.value} /> : '0'}
+            </span>
+            <span className={styles.statLabel}>{stat.label}</span>
+          </div>
+        ))}
+      </section>
+      )}
+
+
+
+
+
       {/* Панель управления */}
-      <section className={styles.controlsSection}>
+      <section className={styles.controlsSection} id="controls-section">
         <div className={styles.controlsContainer}>
 
           {/* Переключатель карта/список */}
@@ -196,6 +309,17 @@ export function HomePage() {
 
           {/* Фильтры */}
           <div className={styles.filters}>
+            <div className={styles.searchRow}>
+              <span className="material-symbols-rounded" style={{ fontSize: '20px', color: 'var(--color-text-secondary)' }}>search</span>
+              <input
+                type="text"
+                className={styles.searchInput}
+                placeholder="Поиск по названию или описанию..."
+                value={filters.search || ''}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+              />
+            </div>
+
             <select
               className={styles.filterSelect}
               value={filters.type || ''}
@@ -283,7 +407,9 @@ export function HomePage() {
             /* Список */
             <div className={styles.listWrapper}>
               {listLoading ? (
-                <div className={styles.listLoading}>Загрузка вакансий...</div>
+                <div className={styles.listGrid}>
+                  {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+                </div>
               ) : opportunities.length === 0 ? (
                 <div className={styles.listEmpty}>
                   <p>Ничего не найдено</p>

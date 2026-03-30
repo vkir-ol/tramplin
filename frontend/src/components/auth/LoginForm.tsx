@@ -8,9 +8,10 @@ import styles from './AuthForms.module.css';
 interface LoginFormProps {
   onSuccess: () => void;
   onSwitchToRegister: () => void;
+  onForgotPassword: () => void;
 }
 
-export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
+export function LoginForm({ onSuccess, onSwitchToRegister, onForgotPassword }: LoginFormProps) {
   const { login, error, clearError } = useAuth();
 
 
@@ -82,6 +83,13 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       <Button type="submit" size="lg" isLoading={isLoading} style={{ width: '100%' }}>
         Войти
       </Button>
+
+      <p className={styles.switchText}>
+        <button type="button" className={styles.switchLink} onClick={onForgotPassword}
+          style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+          Забыли пароль?
+        </button>
+      </p>
 
       <p className={styles.switchText}>
         Нет аккаунта?{' '}

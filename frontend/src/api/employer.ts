@@ -11,6 +11,14 @@ export async function getCompanyProfile(): Promise<CompanyProfileResponse> {
   return response.data.data!;
 }
 
+// Получить публичный профиль компании по ID
+export async function getCompanyPublicProfile(companyId: string): Promise<CompanyProfileResponse> {
+  const response = await api.get<ApiResponse<CompanyProfileResponse>>(
+    `/employers/${companyId}/public`
+  );
+  return response.data.data!;
+}
+
 // Обновить профиль компании
 export async function updateCompanyProfile(
   data: UpdateCompanyRequest

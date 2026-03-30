@@ -11,6 +11,11 @@ export default defineConfig({
         target: 'http://localhost:8080', /*Заменить потом на айпи сервера от Данилы Палыча*/
         changeOrigin: true,
       },
+
+      '/uploads': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
     },
   },
 });

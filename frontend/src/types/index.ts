@@ -31,7 +31,6 @@ export interface AuthResponse {
 }
 
 // Профиль соискателя
-
 export interface ApplicantProfileResponse {
   userId: string;
   firstName: string;
@@ -43,6 +42,10 @@ export interface ApplicantProfileResponse {
   bio: string | null;
   avatarUrl: string | null;
   phone: string | null;
+  portfolioUrl: string | null;
+  githubUrl: string | null;
+  skillsSummary: string | null;
+  tags: string[];
 }
 
 export interface UpdateApplicantRequest {
@@ -54,10 +57,12 @@ export interface UpdateApplicantRequest {
   graduationYear?: number;
   bio?: string;
   phone?: string;
+  portfolioUrl?: string;
+  githubUrl?: string;
+  skillsSummary?: string;
 }
 
 // Профиль компании
-
 export interface CompanyProfileResponse {
   userId: string;
   companyName: string;
@@ -70,6 +75,8 @@ export interface CompanyProfileResponse {
   address: string | null;
   phone: string | null;
   email: string | null;
+  officePhotos: string[] | null;
+  videoUrl: string | null;
   verificationStatus: VerificationStatus;
 }
 
@@ -83,10 +90,11 @@ export interface UpdateCompanyRequest {
   address?: string;
   phone?: string;
   email?: string;
+  officePhotos?: string[];
+  videoUrl?: string;
 }
 
 // Единая обёртка API ответов
-
 export interface ApiErrorDetail {
   code: string;
   message: string;
@@ -113,16 +121,6 @@ export interface UserResponse {
 
 // КАРТОЧКИ ВОЗМОЖНОСТЕЙ
 
-/*
-
-Каждый тип влияет на отображение карточки
-  VACANCY     - обычная вакансия
-  INTERNSHIP  - стажировка
-  MENTORSHIP  - менторская программа
-  EVENT       - карьерное мероприятие(хакатоны, бауманкоды, фонкоды и тд)
-
-*/
-
 export enum OpportunityType {
   VACANCY = 'VACANCY',
   INTERNSHIP = 'INTERNSHIP',
@@ -146,21 +144,6 @@ export enum WorkFormat {
   REMOTE = 'REMOTE',
 }
 
-
-
-
-
-/*
-
-СТАТУСЫ КАРТОЧЕК ВОЗМОЖНОСТЕЙ
-
-  DRAFT               - черновик 
-  ACTIVE              - опубликована и видна всем
-  CLOSED              - закрыта работодателем
-  REJECTED            - отклонена куратором
-  PENDING_MODERATION  - на модерации
-
-*/
 
 export enum OpportunityStatus {
   DRAFT = 'DRAFT',
@@ -220,11 +203,11 @@ export interface CompanySummary {
 
 export interface OpportunityResponse {
   id: string;
-  title: string;                // название мероприятия
-  description: string;          // описание
-  type: OpportunityType;        // тип(перечесления выше)
+  title: string;
+  description: string;
+  type: OpportunityType;
   workFormat: WorkFormat;       // офис/гибрид/удаленка
-  status: OpportunityStatus;    // статус
+  status: OpportunityStatus;
 
   // Месторасположение
   city: string;
@@ -242,7 +225,7 @@ export interface OpportunityResponse {
 
   contactEmail: string | null;
   contactPhone: string | null;
-  contactUrl: string | null;    // ссылка на возможный сайт компании
+  contactUrl: string | null;
 
   employerId: string;
   companyName: string;
@@ -313,7 +296,7 @@ export interface OpportunityFilters {
   tagIds?: string[];
   page?: number;
   size?: number;
-  search?: string;  // поиск по названию или описанию
+  search?: string;
 }
 
 
@@ -388,5 +371,74 @@ export interface FavoriteResponse {
   opportunityId: string;
   opportunityTitle: string;
   companyName: string;
+  createdAt: string;
+}
+
+
+
+
+
+// Управление пользователями
+export interface UserManagementResponse {
+  id: string;
+  email: string;
+  displayName: string;
+  role: UserRole;
+  status: AccountStatus;
+  createdAt: string;
+}
+
+
+export interface CreateCuratorRequest {
+  email: string;
+  displayName: string;
+  password: string;
+}
+
+
+export type VerificationRequestStatus = | 'PENDING' | 'INN_VERIFIED' | 'EMAIL_VERIFIED' | 'APPROVED' | 'REJECTED';
+
+export interface VerificationRequestResponse {
+  id: string;
+  employerId: string;
+  companyName: string;
+  inn: string;
+  companyDomain: string;
+  corporateEmail: string;
+  status: VerificationRequestStatus;
+  rejectionReason: string | null;
+  createdAt: string;
+}
+
+
+export interface CreateVerificationRequest {
+  inn: string;
+  companyDomain: string;
+  corporateEmail: string;
+}
+
+export interface RejectVerificationRequest {
+  rejectionReason: string;
+}
+
+// Модерация
+export type ModerationAction = 'EDIT' | 'HIDE' | 'UNHIDE' | 'BLOCK_USER' | 'UNBLOCK_USER' | 'DELETE';
+export type TargetType = 'OPPORTUNITY' | 'USER' | 'COMPANY';
+
+export interface ModerationActionRequest {
+  reason?: string;
+  details?: string;
+}
+
+
+export interface ModerationLogResponse {
+  id: string;
+  curatorId: string;
+  curatorName: string;
+  action: ModerationAction;
+  targetType: TargetType;
+  targetId: string;
+  reason: string | null;
+  details: string | null;
   createdAt: string;
 }

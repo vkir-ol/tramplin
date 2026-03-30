@@ -39,13 +39,13 @@
 }
 
 .roleBadgeEmployer {
-    background: #e8f0fe;
-    color: #1a56db;
+    background: rgba(26, 86, 219, 0.15);
+    color: #60a5fa;
 }
 
 .roleBadgeCurator {
-    background: #e8fee8;
-    color: #1a8c1a;
+    background: rgba(52, 211, 153, 0.15);
+    color: #34d399;
 }
 
 /* Карточки */
@@ -237,7 +237,7 @@
     opacity: 0.6;
 }
 
-/**/
+
 .placeholder {
     color: var(--color-text-secondary);
     font-size: 0.95rem;
@@ -250,12 +250,12 @@
     align-items: flex-start;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
-    background: #fef3cd;
-    border: 1px solid #ffc107;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.25);
     border-radius: 12px;
     margin-bottom: 1.5rem;
     font-size: 0.95rem;
-    color: #664d03;
+    color: #fbbf24;
 }
 
 .warningBanner span {
@@ -275,20 +275,20 @@
 
 .successBanner {
     padding: 0.75rem 1.25rem;
-    background: #d1e7dd;
-    border: 1px solid #a3cfbb;
+    background: rgba(52, 211, 153, 0.1);
+    border: 1px solid rgba(52, 211, 153, 0.25);
     border-radius: 12px;
-    color: #0f5132;
+    color: #34d399;
     font-size: 0.95rem;
     margin-bottom: 1.5rem;
 }
 
 .errorBanner {
     padding: 0.75rem 1.25rem;
-    background: #f8d7da;
-    border: 1px solid #f5c2c7;
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.25);
     border-radius: 12px;
-    color: #842029;
+    color: #f87171;
     font-size: 0.95rem;
     margin-bottom: 1.5rem;
 }
@@ -511,12 +511,12 @@
     justify-content: space-between;
     padding: 10px 12px;
     border-radius: 8px;
-    background: var(--bg-secondary, #f9fafb);
+    background: var(--color-bg-subtle);
     transition: background 0.15s ease;
 }
 
 .favItem:hover {
-    background: var(--bg-tertiary, #f3f4f6);
+    background: var(--color-bg-elevated);
 }
 
 .favInfo {
@@ -572,12 +572,12 @@
     justify-content: space-between;
     padding: 12px;
     border-radius: 8px;
-    background: var(--bg-secondary, #f9fafb);
+    background: var(--color-bg-subtle);
     gap: 12px;
 }
 
 .appRow:hover {
-    background: var(--bg-tertiary, #f3f4f6);
+    background: var(--color-bg-elevated);
 }
 
 .appInfo {

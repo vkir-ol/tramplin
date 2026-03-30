@@ -1,6 +1,7 @@
 // Хук для избранного
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { addFavorite, removeFavoriteApi, getMyFavorites } from '../api/favorites';
 
 const STORAGE_KEY = 'tramplin_favorites';
 
@@ -12,7 +13,8 @@ export interface FavoriteItem {
   addedAt: string;
 }
 
-function loadFavorites(): FavoriteItem[] {
+
+function loadFromStorage(): FavoriteItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
@@ -23,7 +25,7 @@ function loadFavorites(): FavoriteItem[] {
   }
 }
 
-function saveFavorites(items: FavoriteItem[]): void {
+function saveToStorage(items: FavoriteItem[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   } catch (err) {
@@ -31,14 +33,51 @@ function saveFavorites(items: FavoriteItem[]): void {
   }
 }
 
-export function useFavorites() {
-  const [favorites, setFavorites] = useState<FavoriteItem[]>(loadFavorites);
+function isAuthenticated(): boolean {
+  return !!localStorage.getItem('accessToken');
+}
 
-  // Синхронизация между вкладками
+
+export function useFavorites() {
+  const [favorites, setFavorites] = useState<FavoriteItem[]>(loadFromStorage);
+  const syncingRef = useRef(false);
+
+  useEffect(() => {
+    async function syncFromServer() {
+      if (!isAuthenticated()) return;
+
+      try {
+        const serverFavs = await getMyFavorites();
+        const items: FavoriteItem[] = serverFavs.map(f => ({
+          id: f.opportunityId,
+          type: 'OPPORTUNITY' as FavoriteType,
+          addedAt: f.createdAt,
+        }));
+
+        const localFavs = loadFromStorage();
+        const serverIds = new Set(items.map(i => i.id));
+        const toSync = localFavs.filter(lf => !serverIds.has(lf.id));
+
+        for (const item of toSync) {
+          try {
+            await addFavorite(item.id);
+            items.push(item);
+          } catch { /* дубликат пропускается*/ }
+        }
+
+        setFavorites(items);
+        saveToStorage(items);
+      } catch (err) {
+        console.error('Ошибка загрузки избранного с сервера:', err);
+      }
+    }
+    syncFromServer();
+  }, []);
+
   useEffect(() => {
     function handleStorage(e: StorageEvent) {
       if (e.key === STORAGE_KEY) {
-        setFavorites(loadFavorites());
+        setFavorites(loadFromStorage());
       }
     }
     window.addEventListener('storage', handleStorage);
@@ -51,26 +90,53 @@ export function useFavorites() {
   );
 
   const toggleFavorite = useCallback(
-    (id: string, type: FavoriteType = 'OPPORTUNITY') => {
-      setFavorites((prev) => {
-        const exists = prev.some((f) => f.id === id);
-        const next = exists
-          ? prev.filter((f) => f.id !== id)
-          : [...prev, { id, type, addedAt: new Date().toISOString() }];
-        saveFavorites(next);
-        return next;
-      });
+    async (id: string, type: FavoriteType = 'OPPORTUNITY') => {
+      if (syncingRef.current) return;
+      syncingRef.current = true;
+
+      const exists = favorites.some((f) => f.id === id);
+
+      const next = exists
+        ? favorites.filter((f) => f.id !== id)
+        : [...favorites, { id, type, addedAt: new Date().toISOString() }];
+      setFavorites(next);
+      saveToStorage(next);
+
+      if (isAuthenticated()) {
+        try {
+          if (exists) {
+            await removeFavoriteApi(id);
+          } else {
+            await addFavorite(id);
+          }
+        } catch (err) {
+          console.error('Ошибка синхронизации избранного:', err);
+          setFavorites(favorites);
+          saveToStorage(favorites);
+        }
+      }
+
+      syncingRef.current = false;
     },
-    []
+    [favorites]
   );
 
-  const removeFavorite = useCallback((id: string) => {
-    setFavorites((prev) => {
-      const next = prev.filter((f) => f.id !== id);
-      saveFavorites(next);
-      return next;
-    });
-  }, []);
+  const removeFavorite = useCallback(
+    async (id: string) => {
+      const next = favorites.filter((f) => f.id !== id);
+      setFavorites(next);
+      saveToStorage(next);
+
+      if (isAuthenticated()) {
+        try {
+          await removeFavoriteApi(id);
+        } catch (err) {
+          console.error('Ошибка удаления из избранного:', err);
+        }
+      }
+    },
+    [favorites]
+  );
 
   const getFavoriteIds = useCallback(
     (type?: FavoriteType) => {

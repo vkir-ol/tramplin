@@ -160,7 +160,13 @@ export default function OpportunityPage() {
               />
             )}
             <div>
-              <span className={styles.companyName}>{opportunity.companyName}</span>
+              <span
+                className={styles.companyName}
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate(`/company/${opportunity.employerId}`)}
+              >
+                {opportunity.companyName}
+              </span>
             </div>
           </div>
         </div>

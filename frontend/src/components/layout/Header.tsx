@@ -1,9 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { AuthModal } from '../auth/AuthModal';
 import { Button } from '../ui/Button';
 import styles from './Header.module.css';
+import { getApplicantProfile } from '../../api/applicant';
+import { getCompanyProfile } from '../../api/employer';
+
+function useTheme() {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggle = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+
+  return { theme, toggle };
+}
 
 /*
 Шапка сайта с двумя состояниями:
@@ -40,6 +57,24 @@ export function Header() {
     mode: 'login' | 'register';
   }>({ isOpen: false, mode: 'login' });
 
+  const { theme, toggle: toggleTheme } = useTheme();
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) { setAvatarUrl(null); return; }
+
+    if (user.role === 'APPLICANT') {
+      getApplicantProfile()
+        .then(p => setAvatarUrl(p.avatarUrl || null))
+        .catch(() => {});
+    } else if (user.role === 'EMPLOYER') {
+      getCompanyProfile()
+        .then(p => setAvatarUrl(p.logoUrl || null))
+        .catch(() => {});
+    }
+  }, [user]);
+
   const openLogin = () => setAuthModal({ isOpen: true, mode: 'login' });
   const openRegister = () => setAuthModal({ isOpen: true, mode: 'register' });
   const closeModal = () => setAuthModal({ isOpen: false, mode: 'login' });
@@ -55,6 +90,21 @@ export function Header() {
           </Link>
 
           <div className={styles.actions}>
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+              style={{
+                background: 'none', border: '1px solid var(--color-border)',
+                borderRadius: '50%', width: 36, height: 36,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: 'var(--color-text-secondary)',
+                transition: 'border-color 0.2s, color 0.2s',
+              }}
+            >
+              <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>
+                {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+              </span>
+            </button>
             {user ? (
               <div className={styles.profile}>
                 {/* Клик на аватар/имя - переход в ЛК */}
@@ -68,7 +118,12 @@ export function Header() {
                   }}
                 >
                   <div className={styles.avatar}>
-                    {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
+                    {avatarUrl
+                      ? <img src={avatarUrl} alt="" style={{
+                          width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover',
+                        }} />
+                      : (user.displayName || user.email || '?').charAt(0).toUpperCase()
+                    }
                   </div>
                   <div className={styles.profileInfo}>
                     <span className={styles.profileName}>{user.displayName}</span>

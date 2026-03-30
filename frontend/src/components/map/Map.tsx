@@ -46,30 +46,55 @@ function formatSalary(min: number | null, max: number | null): string {
 
 // Формируем HTML для маркера (модульная карточка при клике на маркер)
 function buildBalloonContent(opp: OpportunityMapCard): string {
+  const typeBg = opp.type === 'VACANCY' ? '#dbeafe' : opp.type === 'INTERNSHIP' ? '#fff3ed' : opp.type === 'EVENT' ? '#d1fae5' : '#ede9fe';
+  const typeColor = opp.type === 'VACANCY' ? '#1d4ed8' : opp.type === 'INTERNSHIP' ? '#E8622C' : opp.type === 'EVENT' ? '#059669' : '#7c3aed';
+
   return `
-    <div style="font-family:Manrope,sans-serif;min-width:240px;padding:4px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <div class="tramplin-balloon">
+      <!-- Шапка: тип + формат -->
+      <div class="tramplin-balloon__header">
+        <span class="tramplin-balloon__type" style="background:${typeBg};color:${typeColor};">
+          ${TYPE_LABELS[opp.type] || opp.type}
+        </span>
+        <span class="tramplin-balloon__format">
+          <span class="material-symbols-rounded" style="font-size:14px;">${FORMAT_ICONS[opp.workFormat] || 'work'}</span>
+          ${FORMAT_LABELS[opp.workFormat] || opp.workFormat}
+        </span>
+      </div>
+
+      <!-- Название -->
+      <div class="tramplin-balloon__title">${opp.title}</div>
+
+      <!-- Компания -->
+      <div class="tramplin-balloon__company">
         ${opp.logoUrl
-          ? `<img src="${opp.logoUrl}" alt="" style="width:32px;height:32px;border-radius:6px;object-fit:cover;" />`
-          : `<div style="width:32px;height:32px;border-radius:6px;background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-weight:700;color:#1a56db;font-size:14px;">${opp.companyName.charAt(0)}</div>`
+          ? `<img src="${opp.logoUrl}" alt="" class="tramplin-balloon__logo" />`
+          : `<div class="tramplin-balloon__logo-placeholder">${opp.companyName.charAt(0)}</div>`
         }
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#1a1a1a;">${opp.companyName}</div>
-          <div style="font-size:11px;color:#6b6b6b;">${TYPE_LABELS[opp.type] || opp.type}</div>
-        </div>
+        <span>${opp.companyName}</span>
       </div>
-      <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:6px;line-height:1.3;">${opp.title}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
-        <span style="font-size:12px;color:#6b6b6b;display:inline-flex;align-items:center;gap:3px;"><span style="font-family:'Material Symbols Rounded';font-size:16px;font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 20;">${FORMAT_ICONS[opp.workFormat] || 'work'}</span> ${FORMAT_LABELS[opp.workFormat] || opp.workFormat}</span>
-        <span style="font-size:12px;color:#6b6b6b;display:inline-flex;align-items:center;gap:3px;"><span style="font-family:'Material Symbols Rounded';font-size:16px;font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 20;">location_on</span> ${opp.city}</span>
-      </div>
+
+      <!-- Теги -->
       ${opp.tags && opp.tags.length > 0 ? `
-        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
-          ${opp.tags.slice(0, 3).map(tag => `<span style="padding:2px 8px;border-radius:10px;background:#fff3ed;color:#E8622C;font-size:11px;font-weight:500;">${tag}</span>`).join('')}
+        <div class="tramplin-balloon__tags">
+          ${opp.tags.slice(0, 4).map(tag => `<span class="tramplin-balloon__tag">${tag}</span>`).join('')}
         </div>
       ` : ''}
-      <div style="font-size:13px;font-weight:600;color:#E8622C;">${formatSalary(opp.salaryMin, opp.salaryMax)}</div>
-      <a href="/opportunities/${opp.id}" style="display:inline-block;margin-top:10px;font-size:12px;color:#E8622C;text-decoration:none;font-weight:600;">Подробнее →</a>
+
+      <!-- Подвал: город + зарплата -->
+      <div class="tramplin-balloon__footer">
+        <span class="tramplin-balloon__city">
+          <span class="material-symbols-rounded" style="font-size:14px;">location_on</span>
+          ${opp.city}
+        </span>
+        <span class="tramplin-balloon__salary">${formatSalary(opp.salaryMin, opp.salaryMax)}</span>
+      </div>
+
+      <!-- Кнопка -->
+      <a href="/opportunities/${opp.id}" class="tramplin-balloon__link">
+        Подробнее
+        <span class="material-symbols-rounded" style="font-size:16px;">arrow_forward</span>
+      </a>
     </div>
   `;
 }

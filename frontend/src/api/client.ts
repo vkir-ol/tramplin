@@ -141,4 +141,9 @@ export function getErrorMessage(error: unknown): string {
 
 export { clearTokens };
 
+// СМЕНА ПАРОЛЯ!!!!!
+export async function changePassword(oldPassword: string, newPassword: string): Promise<void> {
+  await api.put('/auth/change-password', { oldPassword, newPassword });
+}
+
 export default api;

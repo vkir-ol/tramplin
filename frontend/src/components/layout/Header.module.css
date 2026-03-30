@@ -4,7 +4,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--color-surface);
+  background: var(--color-bg-elevated);
   border-bottom: 1px solid var(--color-border);
   backdrop-filter: blur(12px);
 }
@@ -33,10 +33,11 @@
 }
 
 .logoText {
-  font-family: var(--font-heading);
-  font-size: 1.4rem;
+  font-family: 'Unbounded', var(--font-body);
+  font-size: 1.7rem;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--color-text);
+  letter-spacing: -0.02em;
 }
 
 .actions {
@@ -111,5 +112,13 @@
 
   .container {
     padding: 0 1rem;
+  }
+
+  .authButtons {
+    gap: 0.25rem;
+  }
+
+  .logoText {
+    font-size: 1.1rem;
   }
 }
